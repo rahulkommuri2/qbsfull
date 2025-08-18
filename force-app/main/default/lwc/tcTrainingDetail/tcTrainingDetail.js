@@ -164,7 +164,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             .then((data) => {
                 this.wiredTrainingResult = data;
                 if (data) {
-                    console.log('>>',data);
+                    console.log('Apex response:', JSON.stringify(data));
                     this.processTrainingDetails(data);
                 }
                 this.isLoading = false;
