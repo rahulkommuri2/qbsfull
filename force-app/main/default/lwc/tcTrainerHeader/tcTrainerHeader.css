@@ -1,0 +1,127 @@
+/* tcTrainerHeader.css */
+.header-container {
+    background-color: #6250b4;
+    color: #ffffff;
+    min-height: 50px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.logo-wrapper {
+    align-items: center;
+}
+
+.company-logo {
+    height: 38px;
+    width: auto;
+    max-width: 120px;
+    border-color: #ffffff;
+    border-style: solid;
+    border-width: 1px;
+    background-color: #ffffff;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.header-button {
+    background-color: transparent;
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.header-button:hover {
+    text-decoration: underline;
+}
+
+/* Custom tabset styling for navigation */
+.nav-tabset {
+    --slds-c-tabs-color-text: #ffffff;
+    --slds-c-tabs-color-text-active: #ffffff;
+    --slds-c-tabs-color-border-active: #ffffff;
+}
+
+.nav-tabset .slds-tabs_default__nav {
+    background: transparent;
+}
+
+.nav-tabset .slds-tabs_default__item {
+    background: transparent;
+}
+
+.nav-tabset .slds-tabs_default__link {
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+}
+
+.nav-tabset .slds-tabs_default__link:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.nav-tabset .slds-active .slds-tabs_default__link {
+    color: #ffffff;
+    border-bottom-color: #ffffff;
+}
+
+/* User profile section */
+.user-profile {
+    align-items: center;
+}
+
+.qbs-link {
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.qbs-link:hover {
+    text-decoration: underline;
+}
+
+.qbs-text {
+    font-size: 0.875rem;
+}
+
+.redirect-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+}
+
+.notification-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+    cursor: pointer;
+}
+
+.notification-icon:hover {
+    --slds-c-icon-color-foreground-default: #e0e0e0;
+}
+
+.user-dropdown-container {
+    position: relative;
+}
+
+.user-dropdown {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+}
+
+.user-name {
+    font-size: 0.875rem;
+    color: #ffffff;
+    margin-left: 0.25rem;
+}
+
+/* Dropdown menu styling */
+.user-dropdown lightning-menu-item {
+    --slds-c-menu-item-color-text: #333333;
+}

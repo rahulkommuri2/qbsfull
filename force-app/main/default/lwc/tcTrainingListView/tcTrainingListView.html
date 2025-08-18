@@ -1,0 +1,388 @@
+<template>
+    <!-- Loading Spinner -->
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+    </template>
+
+    <!-- Training List View -->
+    <div class="slds-m-top_medium">
+        <div class="">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                    <div class="slds-media__body">
+                        <h2 class="slds-card__header-title">
+                            <span>Trainings</span>
+                        </h2>
+                    </div>
+                </header>
+            </div>
+            <div class="slds-card__body slds-card__body_inner">
+                <div class="slds-text-body_regular slds-m-bottom_medium">
+                    Search for a previous training session here. If there are any training sessions
+                    below that haven't been finalized, consider doing so or deleting them.
+                </div>
+                <lightning-button
+                    variant="brand"
+                    label="New Training"
+                    title="Create a new training"
+                    icon-name="utility:add"
+                    onclick={handleNewTraining}
+                    class="slds-m-bottom_medium"
+                ></lightning-button>
+
+                <!-- Search Filters -->
+                <div class="slds-section slds-is-open">
+                    <h3 class="slds-section__title slds-theme_shade">
+                        <span class="slds-truncate slds-p-horizontal_small" title="Search Filters">
+                            Recent Trainings
+                        </span>
+                        <lightning-button
+                            variant="base"
+                            label="Filter"
+                            title="Toggle filter panel"
+                            icon-name="utility:filter"
+                            onclick={handleFilter}
+                        ></lightning-button>
+                    </h3>
+                    <template if:true={isFilterOpen}>
+                        <div class="slds-section__content">
+                            <div class="slds-grid slds-gutters slds-grid_align-spread slds-wrap">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_2-of-12">
+                                    <lightning-input
+                                        label="Organization"
+                                        value={organizationName}
+                                        disabled
+                                    ></lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-12">
+                                    <lightning-combobox
+                                        label="Finalized"
+                                        value={filters.finalized}
+                                        options={finalizedOptions}
+                                        onchange={handleFinalizedChange}
+                                    ></lightning-combobox>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_2-of-12">
+                                    <lightning-combobox
+                                        label="Course"
+                                        value={filters.course}
+                                        options={courseOptions}
+                                        onchange={handleCourseChange}
+                                    ></lightning-combobox>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_2-of-12">
+                                    <lightning-input
+                                        label="Trainer's Name"
+                                        value={filters.trainer}
+                                        onchange={handleTrainerChange}
+                                    ></lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_3-of-12">
+                                    <lightning-layout>
+                                        <lightning-layout-item size="5">
+                                            <lightning-input
+                                                type="date"
+                                                label="From Date"
+                                                value={filters.startDate}
+                                                onchange={handleDateFromChange}
+                                            ></lightning-input>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item size="2">
+                                            <lightning-icon
+                                                icon-name="utility:product_transfer"
+                                                size="small"
+                                                title="Between"
+                                                class="slds-m-top_large slds-align_absolute-center"
+                                            ></lightning-icon>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item size="5">
+                                            <lightning-input
+                                                type="date"
+                                                label="To Date"
+                                                value={filters.endDate}
+                                                onchange={handleDateToChange}
+                                            ></lightning-input>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_2-of-12">
+                                    <div class="slds-m-top_large slds-align_absolute-center">
+                                        <lightning-button
+                                            variant="base"
+                                            label="Reset"
+                                            title="Reset all filters"
+                                            class="slds-m-right_small"
+                                            onclick={handleResetSearch}
+                                        ></lightning-button>
+                                        <lightning-button
+                                            variant="brand"
+                                            label="Search"
+                                            title="Apply filters"
+                                            icon-name="utility:search"
+                                            onclick={handleSearch}
+                                        ></lightning-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <!-- Training Table -->
+                <!-- <template if:false={isLoading}>
+                    <div class="slds-box slds-m-top_large">
+                        <template if:true={trainings}>
+                            <template if:true={trainings.length}>
+                                <lightning-datatable
+                                    data={trainings}
+                                    columns={columns}
+                                    key-field="Id"
+                                    onrowaction={handleRowAction}
+                                    hide-checkbox-column
+                                ></lightning-datatable>
+                            </template>
+                            <template if:false={trainings.length}>
+                                <div class="slds-text-align_center slds-p-around_medium">
+                                    <lightning-icon 
+                                        icon-name="utility:info" 
+                                        size="small" 
+                                        class="slds-m-right_small">
+                                    </lightning-icon>
+                                    No training records found matching your criteria.
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </template> -->
+                
+                <!-- Replace the Training Table section with this custom table -->
+                <!-- Training Table -->
+                <template if:false={isLoading}>
+                    <div class="slds-m-top_large">
+                        <template if:true={formattedTrainings}>
+                            <template if:true={formattedTrainings.length}>
+                                <div class="custom-table-container">
+                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                        <thead>
+                                            <tr class="slds-line-height_reset">
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="Class Number">Class Number</div>
+                                                </th>
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="Class Name">Class Name</div>
+                                                </th>
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="Finalized">Finalized</div>
+                                                </th>
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="Course Name">Course Name</div>
+                                                </th>
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="Start Date">Start Date ↓</div>
+                                                </th>
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="End Date">End Date</div>
+                                                </th>
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="Trainers">Trainers</div>
+                                                </th>
+                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                    <div class="slds-truncate" title="Actions">Actions</div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={formattedTrainings} for:item="training">
+                                                <tr key={training.Id}>
+                                                    <!-- Class Number -->
+                                                    <td data-label="Class Number">
+                                                        <div class="slds-truncate">
+                                                            <span class="slds-text-body_regular">
+                                                                {training.classNumber}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <!-- Class Name -->
+                                                    <td data-label="Class Name">
+                                                        <div class="slds-truncate">
+                                                            <a href="javascript:void(0);" 
+                                                            class="training-link"
+                                                            data-id={training.Id}
+                                                            onclick={handleTrainingClick}>
+                                                                {training.Name}
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <!-- Finalized Status -->
+                                                    <td data-label="Finalized">
+                                                        <div class="slds-truncate">
+                                                            <span class={training.finalizedClass}>
+                                                                {training.finalizedStatus}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <!-- Course Name -->
+                                                    <td data-label="Course Name">
+                                                        <div class="slds-truncate">
+                                                            <template if:true={training.courseId}>
+                                                                <a href="javascript:void(0);" 
+                                                                class="course-link"
+                                                                data-id={training.courseId}
+                                                                onclick={handleCourseClick}>
+                                                                    {training.courseName}
+                                                                </a>
+                                                            </template>
+                                                            <template if:false={training.courseId}>
+                                                                {training.courseName}
+                                                            </template>
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <!-- Start Date -->
+                                                    <td data-label="Start Date">
+                                                        <div class="slds-truncate">
+                                                            {training.formattedStartDate}
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <!-- End Date -->
+                                                    <td data-label="End Date">
+                                                        <div class="slds-truncate">
+                                                            {training.formattedEndDate}
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <!-- Primary Trainer -->
+                                                    <td data-label="Trainers">
+                                                        <div class="slds-truncate">
+                                                            <template if:true={training.primaryTrainerId}>
+                                                                <a href="javascript:void(0);" 
+                                                                class="trainer-link"
+                                                                data-id={training.primaryTrainerId}
+                                                                onclick={handleTrainerClick}>
+                                                                    {training.primaryTrainerName}
+                                                                </a>
+                                                            </template>
+                                                            <template if:false={training.primaryTrainerId}>
+                                                                {training.primaryTrainerName}
+                                                            </template>
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <!-- Actions -->
+                                                    <td data-label="Actions">
+                                                        <div class="" role="">
+                                                            <lightning-button-icon 
+                                                                icon-name="utility:page"
+                                                                variant="container"
+                                                                alternative-text="View Certificate"
+                                                                title="View Certificate"
+                                                                size="x-small"
+                                                                data-id={training.Id}
+                                                                disabled={isViewCertificateActionDisabled}
+                                                                onclick={handleViewCertificateAction}>
+                                                            </lightning-button-icon>
+                                                            <lightning-button-icon 
+                                                                icon-name="utility:email"
+                                                                variant="container"
+                                                                alternative-text="Email"
+                                                                title="Send Email"
+                                                                size="x-small"
+                                                                data-id={training.Id}
+                                                                disabled={isEmailActionDisabled}
+                                                                onclick={handleEmailAction}>
+                                                            </lightning-button-icon>
+                                                            <lightning-button-icon 
+                                                                icon-name="utility:print"
+                                                                variant="container"
+                                                                alternative-text="Print"
+                                                                title="Print Certificate"
+                                                                size="x-small"
+                                                                data-id={training.Id}
+                                                                disabled={isPrintActionDisabled}
+                                                                onclick={handlePrintAction}>
+                                                            </lightning-button-icon>
+                                                            <lightning-button-icon 
+                                                                icon-name="utility:chart"
+                                                                variant="container"
+                                                                alternative-text="Reports"
+                                                                title="Reports"
+                                                                size="x-small"
+                                                                data-id={training.Id}
+                                                                disabled={isReportsActionDisabled}
+                                                                onclick={handleReportsAction}>
+                                                            </lightning-button-icon>
+                                                            <lightning-button-icon 
+                                                                icon-name="utility:edit"
+                                                                variant="container"
+                                                                alternative-text="Edit"
+                                                                title="Edit Record"
+                                                                size="x-small"
+                                                                data-id={training.Id}
+                                                                disabled={isEditActionDisabled}
+                                                                onclick={handleEditAction}>
+                                                            </lightning-button-icon>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
+                            <template if:false={formattedTrainings.length}>
+                                <div class="slds-text-align_center slds-p-around_medium">
+                                    <lightning-icon 
+                                        icon-name="utility:info" 
+                                        size="small" 
+                                        class="slds-m-right_small">
+                                    </lightning-icon>
+                                    No training records found matching your criteria.
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </template>
+
+                <!-- Pagination -->
+                <template if:true={totalRecords}>
+                    <div class="slds-grid slds-grid_align-spread slds-m-top_medium slds-p-top_medium slds-border_top">
+                        <div class="slds-col">
+                            <lightning-combobox
+                                label="Items per page"
+                                value={pageSize}
+                                options={pageSizeOptions}
+                                onchange={handlePageSizeChange}
+                                variant="label-hidden"
+                            ></lightning-combobox>
+                        </div>
+                        <div class="slds-col slds-text-align_center">
+                            <span class="slds-text-body_regular">{paginationText}</span>
+                        </div>
+                        <div class="slds-col slds-text-align_right">
+                            <lightning-button-group>
+                                <lightning-button-icon
+                                    icon-name="utility:chevronleft"
+                                    alternative-text="Previous"
+                                    title="Previous page"
+                                    onclick={handlePrevious}
+                                    disabled={disablePrevious}
+                                ></lightning-button-icon>
+                                <lightning-button-icon
+                                    icon-name="utility:chevronright"
+                                    alternative-text="Next"
+                                    title="Next page"
+                                    onclick={handleNext}
+                                    disabled={disableNext}
+                                ></lightning-button-icon>
+                            </lightning-button-group>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>

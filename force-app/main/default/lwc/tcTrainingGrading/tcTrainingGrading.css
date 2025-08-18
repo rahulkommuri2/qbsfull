@@ -1,0 +1,25 @@
+.status-btn {
+    width: 50px;
+    height: 50px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    text-align: center;
+    margin: 0 auto;
+    display: block;
+}
+.status-btn.NC {
+    background-color: #4a4a4a; /* Dark Gray */
+}
+.status-btn.NP {
+    background-color: #e74c3c; /* Red */
+}
+.status-btn.NA {
+    background-color: #f39c12; /* Orange */
+}
+.status-btn.P {
+    background-color: #27ae60; /* Green */
+}

@@ -1,0 +1,113 @@
+<template>
+    <div class="header-container">
+        <!-- Mobile Layout -->
+        <template if:true={isMobile}>
+            <lightning-layout horizontal-align="spread" class="slds-p-around_x-small">
+
+                <!-- Logo and Title Section -->
+                <lightning-layout-item size="9" class="slds-p-horizontal_x-small">
+                    <lightning-layout horizontal-align="start" vertical-align="center" class="logo-wrapper">
+                        <lightning-layout-item>
+                            <img src={logoUrl} alt="Company Logo" class="company-logo" />
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="around-small">
+                            <p class="header-title">Trainer Connect</p>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </lightning-layout-item>
+
+                <!-- User Profile Section -->
+                <lightning-layout-item size="3" class="slds-p-horizontal_x-small">
+                    <lightning-layout horizontal-align="center" vertical-align="center" class="user-profile">
+                        <div class="slds-align_absolute-center slds-p-top_x-small">
+                            <lightning-button-menu alternative-text="Show menu" icon-size="x-small" nubbin variant="bare-inverse" icon-name="utility:user" menu-alignment="right">
+                                <lightning-menu-item value="home" label="Home" onclick={handleHome}></lightning-menu-item>
+                                <lightning-menu-item value="profile" label="Profile" onclick={handleProfile}></lightning-menu-item>
+                                <lightning-menu-item value="feedback" label="Feedback" onclick={handleFeedback}></lightning-menu-item>
+                                <lightning-menu-item value="qbsSite" label="QBS Site" onclick={handleQbsSite}></lightning-menu-item>
+                                <lightning-menu-item value="logout" label="Logout" onclick={handleLogout}></lightning-menu-item>
+                            </lightning-button-menu>
+                        </div>
+                    </lightning-layout>
+                </lightning-layout-item>
+
+            </lightning-layout>
+        </template>
+
+        <!-- Non-Mobile Layout -->
+        <template if:false={isMobile}>
+            <lightning-layout horizontal-align="spread" class="slds-p-horizontal_large slds-p-vertical_x-small">
+
+                <!-- Logo and Title Section -->
+                <lightning-layout-item size="4" class="slds-p-horizontal_x-small">
+                    <lightning-layout horizontal-align="start" vertical-align="center" class="logo-wrapper">
+                        <lightning-layout-item>
+                            <img src={logoUrl} alt="Company Logo" class="company-logo" />
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="around-small">
+                            <p class="header-title">Trainer Connect</p>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </lightning-layout-item>
+
+                <!-- User Profile Section -->
+                <lightning-layout-item size="8" class="slds-p-horizontal_x-small">
+                    <lightning-layout horizontal-align="end" class="user-profile">
+
+                        <lightning-layout-item padding="around-small">
+                            <button onclick={handleHome} class="header-button">
+                                Home
+                            </button>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="around-small">
+                            <button onclick={handleProfile} class="header-button">
+                                Profile
+                            </button>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="around-small">
+                            <button onclick={handleFeedback} class="header-button">
+                                Feedback
+                            </button>
+                        </lightning-layout-item>
+
+                        <!-- QBS Link with Redirect Icon -->
+                        <lightning-layout-item padding="around-small">
+                            <a href={qbsUrl} target="_blank" class="qbs-link">
+                                <span class="qbs-text">QBS.com</span>
+                                <lightning-icon 
+                                    icon-name="utility:new_window" 
+                                    alternative-text="Open in new window" 
+                                    size="xx-small"
+                                    class="redirect-icon">
+                                </lightning-icon>
+                            </a>
+                        </lightning-layout-item>
+
+                        <lightning-layout-item padding="around-small">
+                            <!-- add thin divider line with inline style -->
+                            <div style="border-left: 1px solid #ccc; height: 20px; margin: 0 8px;"></div>
+                        </lightning-layout-item>
+
+                        <!-- Notifications -->
+                        <lightning-layout-item padding="around-small">
+                            <lightning-icon 
+                                icon-name="utility:notification" 
+                                alternative-text="Notifications" 
+                                size="x-small"
+                                class="notification-icon">
+                            </lightning-icon>
+                        </lightning-layout-item>
+
+                        <lightning-layout-item padding="around-small">
+                            <lightning-button-menu alternative-text="Show menu" icon-size="x-small" nubbin variant="border-inverse" label={userName} icon-name="utility:user" menu-alignment="right">
+                                <lightning-menu-item value="logout" label="Logout" onclick={handleLogout}></lightning-menu-item>
+                            </lightning-button-menu>
+                        </lightning-layout-item>
+
+                    </lightning-layout>
+                </lightning-layout-item>
+            </lightning-layout>
+        </template>
+
+    </div>
+</template>

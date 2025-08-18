@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+	<masterLabel>Trainer Connect Portal Home</masterLabel>
+	<apiVersion>63.0</apiVersion>
+	<description>Trainer Connect Portal Home</description>
+	<isExposed>true</isExposed>
+	<targets>
+		<target>lightningCommunity__Default</target>
+		<target>lightningCommunity__Page</target>
+	</targets>
+</LightningComponentBundle>

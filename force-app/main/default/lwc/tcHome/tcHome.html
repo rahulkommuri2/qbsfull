@@ -1,0 +1,109 @@
+<template>
+    <div class="slds-p-around_medium">
+        <!-- Mobile view -->
+        <template if:true={isMobile}>
+            <lightning-layout horizontal-align="spread" vertical-align="center" multiple-rows class="slds-m-bottom_medium">
+                <lightning-layout-item size="12" class="slds-m-bottom_small">
+                    <lightning-layout horizontal-align="center" vertical-align="center" multiple-rows>
+                        <lightning-layout-item size="12" padding="around-small">
+                            <a href="#" class="slds-box action slds-text-align_center slds-p-around_small" onclick={handleNewTrainingClick}>
+                                <lightning-icon icon-name="utility:adduser" size="small" class="action-icon"></lightning-icon>
+                                Enter a Specialist Training
+                            </a>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="12" padding="around-small">
+                            <a href="#" class="slds-box action slds-text-align_center slds-p-around_small" onclick={handleActionClick}>
+                                <lightning-icon icon-name="utility:clock" size="small" class="action-icon"></lightning-icon>
+                                QBS Training Schedule
+                            </a>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </lightning-layout-item>
+                <lightning-layout-item size="12" class="slds-m-bottom_small">
+                    <lightning-layout horizontal-align="center" vertical-align="center">
+                        <lightning-layout-item size="4" padding="around-small">
+                            <div class="counter due slds-text-align_center">
+                                <span class="counter-value slds-m-left_small">{dueCount}</span>
+                                Due for Recertification
+                            </div>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="4" padding="around-small">
+                            <div class="counter lapsed slds-text-align_center">
+                                <span class="counter-value slds-m-left_small">{lapsedCount}</span>
+                                Certifications Lapsed
+                            </div>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="4" padding="around-small">
+                            <div class="counter expired slds-text-align_center">
+                                <span class="counter-value slds-m-left_small">{expiredCount}</span>
+                                Certifications Expired
+                            </div>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </lightning-layout-item>
+            </lightning-layout>
+        </template>
+
+        <!-- Desktop view -->
+        <template if:false={isMobile}>
+            <lightning-layout horizontal-align="spread" vertical-align="center" class="slds-m-bottom_medium">
+                <lightning-layout-item size="12" medium-device-size="6" large-device-size="6" class="slds-m-bottom_small">
+                    <lightning-layout vertical-align="center">
+                        <lightning-layout-item size="12" medium-device-size="6" large-device-size="4" padding="around-small">
+                            <a href="#" class="slds-box action slds-text-align_center slds-p-around_small" onclick={handleNewTrainingClick}>
+                                <lightning-icon icon-name="utility:adduser" size="small" class="action-icon"></lightning-icon>
+                                Enter a Specialist Training
+                            </a>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="12" medium-device-size="6" large-device-size="4" padding="around-small">
+                            <a href="#" class="slds-box action slds-text-align_center slds-p-around_small" onclick={handleActionClick}>
+                                <lightning-icon icon-name="utility:clock" size="small" class="action-icon"></lightning-icon>
+                                QBS Training Schedule
+                            </a>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </lightning-layout-item>
+                <lightning-layout-item size="12" medium-device-size="6" large-device-size="6">
+                    <lightning-layout horizontal-align="end" vertical-align="center">
+                        <lightning-layout-item size="12" medium-device-size="4" large-device-size="4">
+                            <div class="counter due slds-text-align_center">
+                                <span class="counter-value">{dueCount}</span>
+                                Due for Recertification
+                            </div>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="12" medium-device-size="4" large-device-size="4">
+                            <div class="counter lapsed slds-text-align_center">
+                                <span class="counter-value">{lapsedCount}</span>
+                                Certifications Lapsed
+                            </div>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="12" medium-device-size="4" large-device-size="4">
+                            <div class="counter expired slds-text-align_center">
+                                <span class="counter-value">{expiredCount}</span>
+                                Certifications Expired
+                            </div>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </lightning-layout-item>
+            </lightning-layout>
+        </template>
+        
+        <lightning-layout multiple-rows="true" vertical-align="stretch" class="slds-grid slds-wrap">
+            <template for:each={tileData} for:item="tile">
+                <lightning-layout-item key={tile.id} size="12" small-device-size="12" medium-device-size="4" large-device-size="2" padding="around-small">
+                    <a href="#" class="tile-container" data-id={tile.id} onmouseover={handleTileHover} onmouseout={handleTileLeave} onclick={handleTileClick}>
+                        <div class="tile slds-box slds-box_link">
+                            <div class="tile-icon">
+                                <lightning-icon icon-name={tile.icon} alternative-text={tile.title} size="large" class="tile-icon-element"></lightning-icon>
+                            </div>
+                        </div>
+                        <div class="tile-text">
+                            <p class="tile-title">{tile.title}</p>
+                            <p class="tile-desc">{tile.description}</p>
+                        </div>
+                    </a>
+                </lightning-layout-item>
+            </template>
+        </lightning-layout>
+    </div>
+</template>
