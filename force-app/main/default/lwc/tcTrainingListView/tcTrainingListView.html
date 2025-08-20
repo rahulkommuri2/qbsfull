@@ -227,7 +227,7 @@
                                                     <!-- Course Name -->
                                                     <td data-label="Course Name">
                                                         <div class="slds-truncate">
-                                                            <template if:true={training.courseId}>
+                                                            <!-- <template if:true={training.courseId}>
                                                                 <a href="javascript:void(0);" 
                                                                 class="course-link"
                                                                 data-id={training.courseId}
@@ -237,7 +237,8 @@
                                                             </template>
                                                             <template if:false={training.courseId}>
                                                                 {training.courseName}
-                                                            </template>
+                                                            </template> -->
+                                                            {training.courseName}
                                                         </div>
                                                     </td>
                                                     
