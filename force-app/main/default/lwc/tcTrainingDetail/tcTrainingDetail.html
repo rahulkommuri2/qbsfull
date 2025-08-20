@@ -62,6 +62,7 @@
                                                     icon-name="utility:refresh"
                                                     label="Refinalize"
                                                     stretch
+                                                    disabled={restrictRefinalize}
                                                     onclick={refinalizeTraining}
                                                 ></lightning-button>
                                             </lightning-layout-item>
@@ -71,6 +72,7 @@
                                                     icon-name="utility:download"
                                                     label="Download Certificates"
                                                     stretch
+                                                    disabled={restrictDownload}
                                                     onclick={downloadCertificates}
                                                 ></lightning-button>
                                             </lightning-layout-item>
@@ -80,6 +82,7 @@
                                                     icon-name="utility:email"
                                                     label="Email Certificates"
                                                     stretch
+                                                    disabled={restrictEmail}
                                                     onclick={emailCertificates}
                                                 ></lightning-button>
                                             </lightning-layout-item>
@@ -130,6 +133,7 @@
                                                 variant="brand"
                                                 label="Refinalize"
                                                 icon-name="utility:refresh"
+                                                disabled={restrictRefinalize}
                                                 onclick={refinalizeTraining}
                                             ></lightning-button>
                                         </lightning-layout-item>
@@ -138,6 +142,7 @@
                                                 variant="brand"
                                                 label="Download Certificates"
                                                 icon-name="utility:download"
+                                                disabled={restrictDownload}
                                                 onclick={downloadCertificates}
                                             ></lightning-button>
                                         </lightning-layout-item>
@@ -146,6 +151,7 @@
                                                 variant="brand"
                                                 label="Email Certificates"
                                                 icon-name="utility:email"
+                                                disabled={restrictEmail}
                                                 onclick={emailCertificates}
                                             ></lightning-button>
                                         </lightning-layout-item>
@@ -214,20 +220,22 @@
                                             disabled={editingDisabled}
                                             class="slds-m-bottom_small"
                                         ></lightning-combobox>
-                                        <div class="slds-box slds-m-top_small slds-theme_shade">
-                                            <lightning-layout multiple-rows="false">
-                                                <lightning-layout-item size="6" class="slds-p-right_small">
-                                                    <div class="slds-align_absolute-center">
-                                                        <span class="slds-text-body_regular">Actual Time: <span class="slds-text-heading_small slds-text-color_success"><strong>{formattedActualTrainingTime}</strong></span></span>
-                                                    </div>
-                                                </lightning-layout-item>
-                                                <lightning-layout-item size="6" class="slds-p-left_small">
-                                                    <div class="slds-align_absolute-center">
-                                                        <span class="slds-text-body_regular">Minimum Time: <span class="slds-text-heading_small slds-text-color_weak"><strong>{formattedMinimumTrainingTime}</strong></span></span>
-                                                    </div>
-                                                </lightning-layout-item>
-                                            </lightning-layout>
-                                        </div>
+                                        <template if:false={isMobileView}>
+                                            <div class="slds-box slds-m-top_medium slds-theme_shade">
+                                                <lightning-layout multiple-rows="false">
+                                                    <lightning-layout-item size="6" class="slds-p-right_small">
+                                                        <div class="slds-align_absolute-center">
+                                                            <span class="slds-text-body_regular">Actual Time: <span class="slds-text-heading_small slds-text-color_success"><strong>{formattedActualTrainingTime}</strong></span></span>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item size="6" class="slds-p-left_small">
+                                                        <div class="slds-align_absolute-center">
+                                                            <span class="slds-text-body_regular">Minimum Time: <span class="slds-text-heading_small slds-text-color_weak"><strong>{formattedMinimumTrainingTime}</strong></span></span>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </lightning-layout-item>
@@ -294,24 +302,38 @@
                                     <div class="slds-p-top_medium">
                                         <lightning-layout multiple-rows>
                                             <lightning-layout-item size="12" medium-device-size="6" class="slds-p-horizontal_xx-small">
-                                                <lightning-record-picker
+                                                <!-- <lightning-record-picker
                                                     label="Primary Faculty"
                                                     value={primaryFacultyContactId}
                                                     object-api-name="Contact"
                                                     filter={primaryFacultyFilterCriteria}
                                                     onchange={updatePrimaryFaculty}
                                                     disabled={editingDisabled}
-                                                ></lightning-record-picker>
+                                                ></lightning-record-picker> -->
+                                                <lightning-combobox
+                                                    label="Primary Faculty"
+                                                    value={primaryFacultyContactId}
+                                                    options={primaryFacultyOptions}
+                                                    onchange={updatePrimaryFaculty}
+                                                    disabled={editingDisabled}
+                                                ></lightning-combobox>
                                             </lightning-layout-item>
                                             <lightning-layout-item size="12" medium-device-size="6" class="slds-p-horizontal_xx-small">
-                                                <lightning-record-picker
+                                                <!-- <lightning-record-picker
                                                     label="Secondary Faculty"
                                                     value={secondaryFacultyContactId}
                                                     object-api-name="Contact"
                                                     filter={secondaryFacultyFilterCriteria}
                                                     onchange={updateSecondaryFaculty}
                                                     disabled={editingDisabled}
-                                                ></lightning-record-picker>
+                                                ></lightning-record-picker> -->
+                                                <lightning-combobox
+                                                    label="Secondary Faculty"
+                                                    value={secondaryFacultyContactId}
+                                                    options={secondaryFacultyOptions}
+                                                    onchange={updateSecondaryFaculty}
+                                                    disabled={editingDisabled}
+                                                ></lightning-combobox>
                                             </lightning-layout-item>
                                         </lightning-layout>
                                     </div>
@@ -338,7 +360,7 @@
                                                 <div style="height: 30vh;" class="slds-scrollable_y slds-box">
                                                     <lightning-datatable
                                                         key-field="id"
-                                                        data={trainingCourseList}
+                                                        data={courseData}
                                                         columns={courseColumns}
                                                         hide-checkbox-column
                                                     ></lightning-datatable>
@@ -368,82 +390,98 @@
                             <!-- Specialists Section -->
                             <lightning-layout-item size="12" class="slds-p-around_small">
                                 <div class="slds-theme_default">
-                                    <h3 class="slds-text-heading_small slds-border_bottom slds-p-bottom_small">Specialists</h3>
+                                    <lightning-layout horizontal-align="spread" class="slds-border_bottom slds-m-bottom_small">
+                                        <lightning-layout-item size="5">
+                                            <h2 class="slds-text-heading_small">Specialists</h2>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item size="7" class="slds-text-align_right slds-m-bottom_small">
+                                            <template if:true={isMobileView}>
+                                                    <lightning-button
+                                                        label="Add New Specialist"
+                                                        variant="base"
+                                                        icon-name="utility:adduser"
+                                                        onclick={addNewSpecialist}
+                                                        disabled={editingDisabled}
+                                                        class="slds-m-bottom_xx-small"
+                                                    ></lightning-button>
+                                            </template>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
                                     <div class="slds-p-top_medium">
                                         <lightning-layout multiple-rows="false" horizontal-align="spread" class="slds-m-bottom_medium">
-                                            <lightning-layout-item size="8" medium-device-size="6" large-device-size="4" class="slds-p-right_small">
-                                                <lightning-record-picker
+                                            <lightning-layout-item size="12" medium-device-size="6" large-device-size="6" class="slds-p-right_small">
+                                                <!-- <lightning-record-picker
                                                     label="Add Specialist"
                                                     object-api-name="Contact"
                                                     placeholder="Search for a Specialist to add"
                                                     value={selectedSpecialistContactId}
                                                     onchange={updateSpecialistSelection}
                                                     disabled={editingDisabled}
-                                                ></lightning-record-picker>
-                                            </lightning-layout-item>
-                                            <lightning-layout-item size="4" medium-device-size="3" large-device-size="5" class="slds-m-top_medium slds-text-align_left">
-                                                <lightning-button
-                                                    label="Add"
-                                                    title="Add Specialist to Training"
-                                                    icon-name="utility:add"
-                                                    variant="neutral"
-                                                    onclick={addSpecialist}
-                                                    disabled={addSpecialistDisabled}
-                                                    class="slds-text-align_left slds-m-top_small"
-                                                ></lightning-button>
-                                            </lightning-layout-item>
-                                            <lightning-layout-item size="12" medium-device-size="3" large-device-size="3" class="slds-m-top_medium slds-text-align_center">
-                                                <lightning-button
-                                                    label="Add New Specialist"
-                                                    variant="brand"
-                                                    icon-name="utility:adduser"
-                                                    onclick={addNewSpecialist}
+                                                ></lightning-record-picker> -->
+                                                <lightning-combobox
+                                                    label="Add Specialist"
+                                                    placeholder="Search for a Specialist to add"
+                                                    value={selectedSpecialistContactId}
+                                                    options={specialistOptions}
+                                                    onchange={updateSpecialistSelection}
                                                     disabled={editingDisabled}
-                                                    class="slds-m-top_small"
-                                                ></lightning-button>
+                                                ></lightning-combobox>
                                             </lightning-layout-item>
+                                            <template if:false={isMobileView}>
+                                                <lightning-layout-item size="4" medium-device-size="3" large-device-size="3" class="slds-m-top_medium slds-text-align_center">
+                                                    <lightning-button
+                                                        label="Add New Specialist"
+                                                        variant="brand"
+                                                        icon-name="utility:adduser"
+                                                        onclick={addNewSpecialist}
+                                                        disabled={editingDisabled}
+                                                        class="slds-m-top_small"
+                                                    ></lightning-button>
+                                                </lightning-layout-item>
+                                            </template>
                                         </lightning-layout>
                                         <template if:true={hasSpecialistsAssigned}>
                                             <div class="specialist-table-container">
                                                 <div class="slds-scrollable_x">
-                                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered ">
                                                         <thead>
                                                             <tr class="slds-line-height_reset">
                                                                 <th class="slds-text-title_caps table-header" scope="col">
-                                                                    <div class="slds-truncate">ID/Department</div>
-                                                                </th>
-                                                                <th class="slds-text-title_caps table-header" scope="col">
                                                                     <div class="slds-truncate">Name</div>
-                                                                </th>
-                                                                <th class="slds-text-title_caps table-header" scope="col">
-                                                                    <div class="slds-truncate">Email Address</div>
                                                                 </th>
                                                                 <th class="slds-text-title_caps table-header" scope="col">
                                                                     <div class="slds-truncate">Organization</div>
                                                                 </th>
                                                                 <th class="slds-text-title_caps table-header" scope="col">
-                                                                    <div class="slds-truncate">Grade</div>
+                                                                    <div class="slds-truncate">Email Address</div>
                                                                 </th>
                                                                 <th class="slds-text-title_caps table-header" scope="col">
+                                                                    <div class="slds-truncate">ID/Department</div>
+                                                                </th>
+                                                                <th class="slds-text-title_caps table-header" scope="col">
+                                                                    <div class="slds-truncate">Status</div>
+                                                                </th>
+                                                                <!-- <th class="slds-text-title_caps table-header" scope="col">
                                                                     <div class="slds-truncate">Restrictions</div>
-                                                                </th>
+                                                                </th> -->
                                                                 <th class="slds-text-title_caps table-header" scope="col">
-                                                                    <div class="slds-truncate">Actions</div>
+                                                                    <div class="slds-truncate">Remove</div>
                                                                 </th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <template for:each={specialistList} for:item="specialist">
                                                                 <tr key={specialist.conId} class="slds-hint-parent">
-                                                                    <td data-label="ID/Department">
-                                                                        <div class="slds-truncate">
-                                                                            {specialist.certificationName}
-                                                                        </div>
-                                                                    </td>
+                                                                    
                                                                     <td data-label="Name">
                                                                         <div class="slds-truncate specialist-name">
                                                                             <lightning-icon icon-name="standard:contact" size="x-small" class="slds-m-right_x-small"></lightning-icon>
                                                                             {specialist.name}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td data-label="Organization">
+                                                                        <div class="slds-truncate">
+                                                                            {specialist.organizationName}
                                                                         </div>
                                                                     </td>
                                                                     <td data-label="Email">
@@ -458,9 +496,9 @@
                                                                             </template>
                                                                         </div>
                                                                     </td>
-                                                                    <td data-label="Organization">
+                                                                    <td data-label="ID/Department">
                                                                         <div class="slds-truncate">
-                                                                            {specialist.accountId}
+                                                                            {specialist.certificationName}
                                                                         </div>
                                                                     </td>
                                                                     <td data-label="Grade">
@@ -473,7 +511,7 @@
                                                                             </template>
                                                                         </div>
                                                                     </td>
-                                                                    <td data-label="Restrictions">
+                                                                    <!-- <td data-label="Restrictions">
                                                                         <div class="slds-truncate">
                                                                             <template if:true={specialist.restrictions}>
                                                                                 <span class="slds-text-color_error restriction-text">
@@ -488,7 +526,7 @@
                                                                                 </span>
                                                                             </template>
                                                                         </div>
-                                                                    </td>
+                                                                    </td> -->
                                                                     <td data-label="Actions">
                                                                         <lightning-button-icon
                                                                             icon-name="utility:delete"
@@ -499,6 +537,7 @@
                                                                             data-specialist-id={specialist.conId}
                                                                             onclick={removeSpecialist}
                                                                             disabled={editingDisabled}
+                                                                            class="slds-align_absolute-center"
                                                                         ></lightning-button-icon>
                                                                     </td>
                                                                 </tr>

@@ -47,6 +47,10 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     @track primaryFacultyContactId = '';
     @track secondaryFacultyContactId = '';
 
+    @track restrictRefinalize = false;
+    @track restrictDownload = true;
+    @track restrictEmail = true;
+
     // Course and competency properties
     @track selectedCourseId = '';
     @track trainingCourseList = [];
@@ -55,7 +59,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         { label: 'Chapter', fieldName: 'chapter' },
         { label: 'Initial Time', fieldName: 'initialTime' },
         { label: 'Recert Time', fieldName: 'recertTime' },
-        { label: 'Taught', fieldName: 'taught', type: 'boolean', cellAttributes: { class: 'slds-text-align_center' } }
+        { label: 'Taught', fieldName: 'taught', type: 'boolean', cellAttributes: { class: 'slds-align_absolute-center' } }
     ];
     @track courseOptions = [];
     @track courseData = [];
@@ -291,6 +295,20 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         // Only reset isEditMode if not coming from navigation with edit mode
         if (!this.isEditMode) {
             this.isEditMode = false;
+        }
+
+        if (data.training) {
+            const training = data.training;
+
+            if(training) {
+                if((training.Refinalized__c && training.Finalized__c) ||  !training.Finalized__c) {
+                    this.restrictRefinalize = true;
+                }
+                if(training.Finalized__c) {
+                    this.restrictDownload = false;
+                    this.restrictEmail = false;
+                }
+            }
         }
 
         // Processing training information
