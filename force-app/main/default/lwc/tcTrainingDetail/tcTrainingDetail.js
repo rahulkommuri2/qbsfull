@@ -59,7 +59,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         { label: 'Chapter', fieldName: 'chapter' },
         { label: 'Initial Time', fieldName: 'initialTime' },
         { label: 'Recert Time', fieldName: 'recertTime' },
-        { label: 'Taught', fieldName: 'taught', type: 'boolean', cellAttributes: { class: 'slds-align_absolute-center' } }
+        { label: 'Taught', fieldName: 'taught', type: 'boolean', editable: this.isEditMode, cellAttributes: { class: 'slds-align_absolute-center' } }
     ];
     @track courseOptions = [];
     @track courseData = [];
