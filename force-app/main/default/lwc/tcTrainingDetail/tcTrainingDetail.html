@@ -302,14 +302,6 @@
                                     <div class="slds-p-top_medium">
                                         <lightning-layout multiple-rows>
                                             <lightning-layout-item size="12" medium-device-size="6" class="slds-p-horizontal_xx-small">
-                                                <!-- <lightning-record-picker
-                                                    label="Primary Faculty"
-                                                    value={primaryFacultyContactId}
-                                                    object-api-name="Contact"
-                                                    filter={primaryFacultyFilterCriteria}
-                                                    onchange={updatePrimaryFaculty}
-                                                    disabled={editingDisabled}
-                                                ></lightning-record-picker> -->
                                                 <lightning-combobox
                                                     label="Primary Faculty"
                                                     value={primaryFacultyContactId}
@@ -319,14 +311,6 @@
                                                 ></lightning-combobox>
                                             </lightning-layout-item>
                                             <lightning-layout-item size="12" medium-device-size="6" class="slds-p-horizontal_xx-small">
-                                                <!-- <lightning-record-picker
-                                                    label="Secondary Faculty"
-                                                    value={secondaryFacultyContactId}
-                                                    object-api-name="Contact"
-                                                    filter={secondaryFacultyFilterCriteria}
-                                                    onchange={updateSecondaryFaculty}
-                                                    disabled={editingDisabled}
-                                                ></lightning-record-picker> -->
                                                 <lightning-combobox
                                                     label="Secondary Faculty"
                                                     value={secondaryFacultyContactId}
@@ -410,14 +394,6 @@
                                     <div class="slds-p-top_medium">
                                         <lightning-layout multiple-rows="false" horizontal-align="spread" class="slds-m-bottom_medium">
                                             <lightning-layout-item size="12" medium-device-size="6" large-device-size="6" class="slds-p-right_small">
-                                                <!-- <lightning-record-picker
-                                                    label="Add Specialist"
-                                                    object-api-name="Contact"
-                                                    placeholder="Search for a Specialist to add"
-                                                    value={selectedSpecialistContactId}
-                                                    onchange={updateSpecialistSelection}
-                                                    disabled={editingDisabled}
-                                                ></lightning-record-picker> -->
                                                 <lightning-combobox
                                                     label="Add Specialist"
                                                     placeholder="Search for a Specialist to add"
@@ -461,9 +437,6 @@
                                                                 <th class="slds-text-title_caps table-header" scope="col">
                                                                     <div class="slds-truncate">Status</div>
                                                                 </th>
-                                                                <!-- <th class="slds-text-title_caps table-header" scope="col">
-                                                                    <div class="slds-truncate">Restrictions</div>
-                                                                </th> -->
                                                                 <th class="slds-text-title_caps table-header" scope="col">
                                                                     <div class="slds-truncate">Remove</div>
                                                                 </th>
@@ -511,22 +484,6 @@
                                                                             </template>
                                                                         </div>
                                                                     </td>
-                                                                    <!-- <td data-label="Restrictions">
-                                                                        <div class="slds-truncate">
-                                                                            <template if:true={specialist.restrictions}>
-                                                                                <span class="slds-text-color_error restriction-text">
-                                                                                    <lightning-icon icon-name="utility:warning" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                                                                                    {specialist.restrictions}
-                                                                                </span>
-                                                                            </template>
-                                                                            <template if:false={specialist.restrictions}>
-                                                                                <span class="slds-text-color_success">
-                                                                                    <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                                                                                    No restrictions
-                                                                                </span>
-                                                                            </template>
-                                                                        </div>
-                                                                    </td> -->
                                                                     <td data-label="Actions">
                                                                         <lightning-button-icon
                                                                             icon-name="utility:delete"
@@ -631,5 +588,80 @@
                 </div>
             </lightning-layout-item>
         </lightning-layout>
+    </template>
+    <!-- Modal -->
+    <template if:true={isModalOpen}>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseModal}>
+                        <lightning-icon icon-name="utility:close" size="small" alternative-text="close"></lightning-icon>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium">Add New Specialist</h2>
+                </header>
+                <div class="slds-modal__content">
+                    <lightning-layout multiple-rows="true" class="slds-m-horizontal_medium">
+                        <lightning-layout-item size="12" padding="top-small">
+                            <lightning-input 
+                                label="Organization" 
+                                type="text" 
+                                value="Fantail Test Company" 
+                                name="organization"
+                                class="">
+                            </lightning-input>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="12" padding="top-small">
+                            <lightning-combobox 
+                                name="subOrg" 
+                                label="Sub Organization"
+                                value="" 
+                                placeholder="Select Sub Organization"
+                                options={subOrgOptions}
+                                class="">
+                            </lightning-combobox>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="6" padding="top-small">
+                            <lightning-input 
+                                label="First Name *" 
+                                type="text" 
+                                name="firstName"
+                                required 
+                                class="slds-m-right_small">
+                            </lightning-input>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="6" padding="top-small">
+                            <lightning-input 
+                                label="Last Name *" 
+                                type="text" 
+                                name="lastName"
+                                required 
+                                class="slds-m-left_small">
+                            </lightning-input>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="6" padding="top-small">
+                            <lightning-input 
+                                label="Email" 
+                                type="email" 
+                                name="email"
+                                class="slds-m-bottom_small slds-m-right_small">
+                            </lightning-input>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="6" padding="top-small">
+                            <lightning-input 
+                                label="ID/Department" 
+                                type="text" 
+                                name="dept"
+                                class="slds-m-bottom_small slds-m-left_small">
+                            </lightning-input>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="Cancel" onclick={handleCloseModal} class="slds-m-right_small"></lightning-button>
+                    <lightning-button variant="brand" label="Add" onclick={handleAdd}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
 </template>

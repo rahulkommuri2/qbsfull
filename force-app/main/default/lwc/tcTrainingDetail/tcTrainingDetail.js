@@ -10,10 +10,12 @@ import formFactorPropertyName from '@salesforce/client/formFactor';
 import getTrainingDetails from '@salesforce/apex/tcTrainingDetailsController.initializePage';
 import createCorrectionCase from '@salesforce/apex/tcTrainingDetailsController.createCase';
 
-/**
- * LWC component for displaying and managing training details.
- * Interacts with tcTrainingDetailsController to fetch and update training data.
- */
+import initializeEditTrainingData from '@salesforce/apex/tcTrainingServiceController.initializeEditTrainingPage';
+import getListOfOrgs from '@salesforce/apex/tcTrainingServiceController.getListOfOrgs';
+import getListOfTrainers from '@salesforce/apex/tcTrainingServiceController.getListOfTrainers';
+
+import initializeTrainingData from '@salesforce/apex/tcTrainingController.initializeTrainingData';
+
 export default class TcTrainingDetail extends NavigationMixin(LightningElement) {
     // Public properties
     @api recordId; // Training ID from parent or record page
@@ -31,6 +33,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     @track trainingId = '';
     @track contactId = '';
     @track trainingDetails = {};
+    @track parentOrgId = '';
     @track selectedSubOrganization = '';
     @track selectedCertificationType = '';
     @track trainingStartDate = '';
@@ -70,6 +73,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     @track selectedSpecialistContactId = '';
     @track specialistList = [];
     @track hasSpecialistsAssigned = false;
+    @track isModalOpen = false;
 
     // Dropdown options
     @track subOrganizationOptions = [
@@ -118,9 +122,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     wiredTrainingResult;
     pageRef;
 
-    /**
-     * Initializes component state on connection.
-     */
+    // Initializes component state on connection.
     connectedCallback() {
         this.isMobileView = formFactorPropertyName === 'Small';
         if (this.recordId) {
@@ -128,9 +130,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }
     }
 
-    /**
-     * Retrieves state parameters from the page reference.
-     */
+    // Retrieves state parameters from the page reference.
     @wire(CurrentPageReference)
     getStateParameters(currentPageReference) {
         if (currentPageReference) {
@@ -150,9 +150,9 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }
     }
 
-    /**
-     * Fetches the current user's contact ID.
-     */
+    
+
+    // Fetches the current user's contact ID.
     @wire(getRecord, { recordId: userId, fields: [CONTACT_ID_FIELD] })
     wiredUser({ error, data }) {
         if (data) {
@@ -168,8 +168,8 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             .then((data) => {
                 this.wiredTrainingResult = data;
                 if (data) {
-                    console.log('Apex response:', JSON.stringify(data));
                     this.processTrainingDetails(data);
+                    this.fetchInitializeTrainingData();
                 }
                 this.isLoading = false;
             })
@@ -179,39 +179,42 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             });
     }
 
-    /**
-     * Fetches training details from Apex.
-     */
-    // @wire(getTrainingDetails, { trainingId: '$trainingId', contactId: '$contactId' })
-    // wiredTraining({ error, data }) {
-    //     this.wiredTrainingResult = data;
-    //     if (data) {
-    //         this.processTrainingDetails(data);
-    //         this.isLoading = false;
-    //     } else if (error) {
-    //         this.showErrorToast('Failed to load training details: ' + this.getErrorMessage(error));
-    //         this.isLoading = false;
-    //     }
-    // }
+    fetchInitializeTrainingData() {
+        initializeTrainingData({ trainingId: this.trainingId, contactId: this.contactId })
+            .then((data) => {
+                console.log('Apex response:', JSON.stringify(data, null, 2));
+            })
+            .catch((error) => {
+                this.showErrorToast('Failed to load initial training details: ' + this.getErrorMessage(error));
+            });
+    }
 
-    /**
-     * Computes whether editing is disabled.
-     */
+    // Computes whether editing is disabled.
     get editingDisabled() {
         return this.isNotEditable || !this.isEditMode;
     }
 
-    /**
-     * Toggles the mobile menu visibility.
-     */
+    handleOpenModal() {
+        this.isModalOpen = true;
+    }
+
+    handleCloseModal() {
+        this.isModalOpen = false;
+    }
+
+    handleAdd() {
+        // Add logic to handle form submission
+        console.log('Add button clicked');
+        this.isModalOpen = false;
+    }
+
+    // Toggles the mobile menu visibility.
     toggleMobileMenu() {
         this.isMobileMenuVisible = !this.isMobileMenuVisible;
         this.mobileMenuIcon = this.isMobileMenuVisible ? 'utility:up' : 'utility:down';
     }
 
-    /**
-     * Navigates to the training list page.
-     */
+    // Navigates to the training list page.
     navigateToTrainings() {
         this[NavigationMixin.Navigate]({
             type: 'standard__objectPage',
@@ -222,45 +225,52 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         });
     }
 
-    /**
-     * Enables edit mode if the training is editable.
-     */
+    // Enables edit mode if the training is editable.
     editTraining() {
         if (this.isNotEditable) {
             this.showInfoToast('This training cannot be edited.');
             return;
         }
-        this.isEditMode = true;
-        this.showSuccessToast('Edit mode enabled.');
+        this.isLoading = true;
+        // Fetch initial data for edit mode
+        initializeEditTrainingData({ trainingId: this.trainingId, conId: this.contactId, orgId : this.parentOrgId })
+            .then((data) => {
+                this.trainingDetails = data;
+                this.specialistOptions = data.specialistList;
+                this.primaryFacultyOptions = data.trainerList;
+                this.secondaryFacultyOptions = data.trainerList;
+                this.selectedSubOrganization = data.subOrganizationsList;
+                this.isEditMode = true;
+                this.showSuccessToast('Edit mode enabled.');
+            })
+            .catch((error) => {
+                this.showErrorToast('Failed to initialize edit mode: ' + this.getErrorMessage(error));
+            })
+            .finally(() => {
+                this.isLoading = false;
+            });
+
     }
 
-    /**
-     * Handles refinalization of training (placeholder).
-     */
+    // Handles refinalization of training (placeholder).
     refinalizeTraining() {
         // TODO: Implement refinalize functionality
         this.showInfoToast('Refinalize functionality coming soon.');
     }
 
-    /**
-     * Handles downloading certificates (placeholder).
-     */
+    // Handles downloading certificates (placeholder).
     downloadCertificates() {
         // TODO: Implement download certificates functionality
         this.showInfoToast('Download certificates functionality coming soon.');
     }
 
-    /**
-     * Handles emailing certificates (placeholder).
-     */
+    // Handles emailing certificates (placeholder).
     emailCertificates() {
         // TODO: Implement email certificates functionality
         this.showInfoToast('Email certificates functionality coming soon.');
     }
 
-    /**
-     * Submits a correction request case.
-     */
+    // Submits a correction request case.
     requestCorrection() {
         if (!this.trainingDetails.training?.Name) {
             this.showErrorToast('Training name is missing.');
@@ -285,10 +295,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             });
     }
 
-    /**
-     * Processes training details from Apex response.
-     * @param {Object} data - TrainingDetails object from Apex
-     */
+    // Processes training details from Apex response.
     processTrainingDetails(data) {
         this.trainingDetails = data || {};
         this.isNotEditable = data.isNotEditable ?? true;
@@ -301,6 +308,11 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             const training = data.training;
 
             if(training) {
+
+                this.parentOrgId = training.Organization__c || '';
+                console.log('Parent Organization ID:', this.parentOrgId);
+                console.log('Parent Org name:', training.Organization__r?.Name);
+
                 if((training.Refinalized__c && training.Finalized__c) ||  !training.Finalized__c) {
                     this.restrictRefinalize = true;
                 }
@@ -321,10 +333,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         this.processSpecialists(data.specialistList);
     }
 
-    /**
-     * Processes training information.
-     * @param {Object} training - hed__Course_Offering__c record
-     */
+    // Processes training information.
     processTrainingInfo(training) {
         if (training) {
             this.selectedSubOrganization = training.Organization__r?.Name ?? '';
@@ -342,21 +351,25 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }
     }
 
-    /**
-     * Processes trainer list.
-     * @param {Array} trainerList - List of Contact records
-     */
+    // Processes trainer list.
     processTrainers(trainerList) {
         if (trainerList?.length) {
             this.primaryFacultyContactId = trainerList[0]?.Id ?? '';
             this.secondaryFacultyContactId = trainerList[1]?.Id ?? '';
         }
+        if (this.isEditMode) {
+            this.primaryFacultyOptions = trainerList.map(trainer => ({
+                label: trainer.Name,
+                value: trainer.Id
+            }));
+            this.secondaryFacultyOptions = trainerList.map(trainer => ({
+                label: trainer.Name,
+                value: trainer.Id
+            }));
+        }
     }
 
-    /**
-     * Processes course and competency data.
-     * @param {Array} trainingCourseList - List of CourseWrapper objects
-     */
+    // Processes course and competency data.
     processCourses(trainingCourseList) {
         this.courseOptions = (trainingCourseList || []).map(course => ({
             label: course.name ?? '',
@@ -373,12 +386,18 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         } else {
             this.hasCourseCompetencies = false;
         }
+
+        if (this.isEditMode) {
+            this.courseOptions.forEach(course => {
+                this.courseOptions.push({
+                    label: course.label,
+                    value: course.value
+                });
+            });
+        }
     }
 
-    /**
-     * Sets course data for the datatable.
-     * @param {Array} competencies - List of cc_Event_Competency__c records
-     */
+    // Sets course data for the datatable.
     setCourseData(competencies) {
         this.courseData = (competencies || []).map(comp => ({
             id: comp.Id,
@@ -392,10 +411,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         this.courseDuration = this.courseData.reduce((sum, comp) => sum + (Number(comp.initialTime) || Number(comp.recertTime)), 0).toFixed(2);
     }
 
-    /**
-     * Processes specialist list.
-     * @param {Array} specialistList - List of SpecialistWrapper objects
-     */
+    // Processes specialist list.
     processSpecialists(specialistList) {
         this.specialistList = (specialistList || []).map(specialist => ({
             ...specialist,
@@ -404,11 +420,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         this.hasSpecialistsAssigned = this.specialistList.length > 0;
     }
 
-    /**
-     * Calculates minimum training time in hours.
-     * @param {Object} training - hed__Course_Offering__c record
-     * @returns {Number} Minimum time in hours
-     */
+    // Calculates minimum training time in hours.
     calculateMinimumTime(training) {
         if (!training) return 0;
         const minTime = training.Certification_Type__c === 'Initial'
@@ -417,26 +429,18 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         return (minTime / 60).toFixed(2);
     }
 
-    /**
-     * Updates formatted actual and minimum training times.
-     * @param {Number} actualTime - Actual training time
-     * @param {Number} minTime - Minimum training time
-     */
+    // Updates formatted actual and minimum training times.
     updateFormattedTimes(actualTime, minTime) {
         this.formattedActualTrainingTime = `${actualTime} hours`;
         this.formattedMinimumTrainingTime = `${minTime} hours`;
     }
 
-    /**
-     * Handles sub-organization change.
-     */
+    // Handles sub-organization change.
     updateSubOrganization(event) {
         this.selectedSubOrganization = event.detail.value;
     }
 
-    /**
-     * Handles certification type change.
-     */
+    // Handles certification type change.
     updateCertificationType(event) {
         this.selectedCertificationType = event.detail.value;
         this.updateFormattedTimes(
@@ -445,86 +449,77 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         );
     }
 
-    /**
-     * Handles training start date change.
-     */
+    // Handles training start date change.
     updateStartDate(event) {
         this.trainingStartDate = event.detail.value;
     }
 
-    /**
-     * Handles training end date change.
-     */
+    // Handles training end date change.
     updateEndDate(event) {
         this.trainingEndDate = event.detail.value;
     }
 
-    /**
-     * Handles authorization change.
-     */
+    // Handles authorization change.
     updateAuthorization(event) {
         this.selectedAuthorization = event.detail.value;
     }
 
-    /**
-     * Handles location address change.
-     */
+    // Handles training end date change.
+    updateEndDate(event) {
+        this.trainingEndDate = event.detail.value;
+    }
+
+    // Handles authorization change.
+    updateAuthorization(event) {
+        this.selectedAuthorization = event.detail.value;
+    }
+
+    // Handles authorization change.
+    updateAuthorization(event) {
+        this.selectedAuthorization = event.detail.value;
+    }
+
+    // Handles location address change.
     updateLocationAddress(event) {
         this.trainingLocationAddress = event.detail.value;
     }
 
-    /**
-     * Handles city change.
-     */
+    // Handles city change.
     updateCity(event) {
         this.locationCity = event.detail.value;
     }
 
-    /**
-     * Handles state change.
-     */
+    // Handles state change.
     updateState(event) {
         this.selectedState = event.detail.value;
     }
 
-    /**
-     * Handles zip code change.
-     */
+    // Handles zip code change.
     updateZipCode(event) {
         this.locationZipCode = event.detail.value;
     }
 
-    /**
-     * Handles training notes change.
-     */
+    // Handles training notes change.
     updateTrainingNotes(event) {
         this.trainingNotes = event.detail.value;
     }
 
-    /**
-     * Handles finalized status change.
-     */
+    // Handles finalized status change.
     updateFinalizedStatus(event) {
         this.finalizedStatus = event.detail.value;
     }
 
-    /**
-     * Handles primary faculty change.
-     */
+    // Handles primary faculty change.
     updatePrimaryFaculty(event) {
         this.primaryFacultyContactId = event.detail.value;
     }
 
-    /**
-     * Handles secondary faculty change.
-     */
+    // Handles secondary faculty change.
     updateSecondaryFaculty(event) {
         this.secondaryFacultyContactId = event.detail.value;
     }
 
-    /**
-     * Handles course selection change.
-     */
+    // Handles course selection change.
     updateCourseSelection(event) {
         this.selectedCourseId = event.detail.value;
         const selectedCourse = this.trainingDetails.trainingCourseList?.find(course => course.courseId === this.selectedCourseId);
@@ -533,16 +528,12 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }
     }
 
-    /**
-     * Handles course duration change.
-     */
+
     updateCourseDuration(event) {
         this.courseDuration = event.detail.value;
     }
 
-    /**
-     * Handles specialist selection (placeholder).
-     */
+    // Handles specialist selection (placeholder).
     updateSpecialistSelection(event) {
         const value = event.detail.value;
         if (value) {
@@ -563,17 +554,12 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }
     }
 
-    /**
-     * Handles adding a new specialist (placeholder).
-     */
+    // Handles adding a new specialist (placeholder).
     addNewSpecialist() {
-        // TODO: Implement add new specialist functionality
-        this.showInfoToast('Add new specialist functionality coming soon.');
+        this.handleOpenModal();
     }
 
-    /**
-     * Removes a specialist from the list (simulation).
-     */
+    // Removes a specialist from the list (simulation).
     removeSpecialist(event) {
         const specialistId = event.currentTarget.dataset.specialistId;
         this.specialistList = this.specialistList.filter(spec => spec.conId !== specialistId);
@@ -581,9 +567,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         this.showSuccessToast('Specialist removed (simulation).');
     }
 
-    /**
-     * Saves training details (placeholder).
-     */
+    // Saves training details (placeholder).
     saveTraining() {
         // TODO: Implement actual save functionality via Apex
         this.isLoading = true;
@@ -611,9 +595,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }, 1000);
     }
 
-    /**
-     * Navigates to the training grading page.
-     */
+    // Navigates to the training grading page.
     gradeAndFinalize() {
         this[NavigationMixin.Navigate]({
             type: 'comm__namedPage',
@@ -627,9 +609,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         });
     }
 
-    /**
-     * Refreshes training data from Apex.
-     */
+    // Refreshes training data from Apex.
     refreshData() {
         this.isLoading = true;
         return refreshApex(this.wiredTrainingResult)
@@ -642,19 +622,10 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             });
     }
 
-    /**
-     * Extracts error message from Apex or LWC errors.
-     * @param {Object} error - Error object
-     * @returns {String} Formatted error message
-     */
     getErrorMessage(error) {
         return error.body?.message || error.message || 'Unknown error';
     }
 
-    /**
-     * Displays a success toast message.
-     * @param {String} message - Message to display
-     */
     showSuccessToast(message) {
         this.dispatchEvent(new ShowToastEvent({
             title: 'Success',
@@ -663,10 +634,6 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }));
     }
 
-    /**
-     * Displays an error toast message.
-     * @param {String} message - Message to display
-     */
     showErrorToast(message) {
         this.dispatchEvent(new ShowToastEvent({
             title: 'Error',
@@ -675,10 +642,6 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }));
     }
 
-    /**
-     * Displays an info toast message.
-     * @param {String} message - Message to display
-     */
     showInfoToast(message) {
         this.dispatchEvent(new ShowToastEvent({
             title: 'Info',

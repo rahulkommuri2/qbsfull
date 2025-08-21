@@ -82,7 +82,7 @@ export default class TcTrainingGrading extends NavigationMixin(
     this.isLoading = true;
     initializePage({ trainingId: this.trainingId, conId: this.contactId })
       .then((result) => {
-        console.log("Apex response:", JSON.stringify(result));
+        console.log("Apex response:", result);
         this.trainingDetails = JSON.parse(JSON.stringify(result));
         this.trainingName = this.trainingDetails.name || "Unknown Training";
         this.isFinalized = this.trainingDetails.finalized || false;
@@ -194,22 +194,28 @@ export default class TcTrainingGrading extends NavigationMixin(
   }
 
   prepareTableData() {
-    this.tableData = this.competencies.map((comp) => {
-      const row = {
-        id: comp.id,
-        name: comp.name,
-      };
-
-      // Add grade data for each specialist
-      this.specialists.forEach((spec, index) => {
-        const grade = comp.specialistGradeStringList[index] || "NC";
-        row[`${spec.id}_grade`] = grade;
-        row[`${spec.id}_variant`] = this.getSldsButtonVariant(grade);
-      });
-
-      return row;
+    this.tableData = this.competencies.map(comp => {
+        const row = {
+            id: comp.id,
+            name: comp.name,
+            gradeButtons: [] // Array of grade button objects
+        };
+        
+        // Create grade buttons array
+        this.specialists.forEach((spec, index) => {
+            const grade = comp.specialistGradeStringList[index] || 'NC';
+            row.gradeButtons.push({
+                specialistId: spec.id,
+                specialistName: spec.name,
+                grade: grade,
+                cssClass: `status-btn ${grade}`
+            });
+        });
+        
+        return row;
     });
-  }
+}
+
 
   handleRowAction(event) {
     console.log("Button clicked!", event.detail); // Debug log
@@ -264,6 +270,40 @@ export default class TcTrainingGrading extends NavigationMixin(
     console.log("Table data updated:", this.tableData[compIndex]); // Debug log
   }
 
+  // Add this method to handle grade button clicks
+  handleGradeClick(event) {
+    // Get competency row id and specialist id from data attributes
+    const rowId = event.currentTarget.dataset.rowId;
+    const specialistId = event.currentTarget.dataset.specialistId;
+
+    // Find the competency index
+    const compIndex = this.tableData.findIndex(row => row.id === rowId);
+    if (compIndex === -1) return;
+
+    // Find the specialist index
+    const specIndex = this.specialists.findIndex(s => s.id === specialistId);
+    if (specIndex === -1) return;
+
+    // Get current grade
+    const currentGrade = this.tableData[compIndex].gradeButtons[specIndex].grade;
+    const currentStatusIndex = this.statuses.findIndex(s => s.label === currentGrade);
+
+    // Cycle to next grade
+    const nextStatusIndex = (currentStatusIndex + 1) % this.statuses.length;
+    const nextStatus = this.statuses[nextStatusIndex];
+
+    // Update grade in tableData
+    this.tableData[compIndex].gradeButtons[specIndex].grade = nextStatus.label;
+    this.tableData[compIndex].gradeButtons[specIndex].cssClass = `status-btn ${nextStatus.label}`;
+
+    // Also update in competencies (so it will be sent to backend)
+    this.competencies[compIndex].specialistGradeStringList[specIndex] = nextStatus.label;
+    this.competencies[compIndex].specialistGradeList[specIndex] = (nextStatus.label === "P");
+
+    // Force UI refresh
+    this.tableData = [...this.tableData];
+}
+
   formatDate(dateTime) {
     if (!dateTime) return "";
     const date = new Date(dateTime);
@@ -307,11 +347,29 @@ export default class TcTrainingGrading extends NavigationMixin(
 
   handleSave(isFinalize, isRefinalize, isIndicate) {
     this.isLoading = true;
-    if (this.mode === "Initial") {
-      //this.trainingDetails.initialTime = this.actualTime;
-    } else {
-      //this.trainingDetails.recertTime = this.actualTime;
-    }
+
+    // Sync tableData grades to trainingDetails before saving
+    this.tableData.forEach((row, compIndex) => {
+        row.gradeButtons.forEach((gradeBtn, specIndex) => {
+            if (
+                this.trainingDetails &&
+                this.trainingDetails.competencyWraperList &&
+                this.trainingDetails.competencyWraperList[compIndex] &&
+                this.trainingDetails.competencyWraperList[compIndex].specialistGradeStringList
+            ) {
+                this.trainingDetails.competencyWraperList[compIndex].specialistGradeStringList[specIndex] = gradeBtn.grade;
+            }
+        });
+    });
+
+    // Log the data being sent to Apex for debugging
+    console.log('Data sent to saveAndFinalizeGrade:', {
+        trainingDeatailsString: JSON.stringify(this.trainingDetails),
+        finalize: isFinalize,
+        refinalize: isRefinalize,
+        isIndicate: isIndicate,
+        conId: this.contactId
+    });
 
     saveAndFinalizeGrade({
       trainingDeatailsString: JSON.stringify(this.trainingDetails),

@@ -333,8 +333,8 @@
 
                 <!-- Grading Table Section -->
                 <lightning-layout-item size="12" class="slds-m-top_medium">
-                    <div class="">
-                        <div class="">
+                    <div>
+                        <div>
                             <header class="slds-media slds-media_center slds-has-flexi-truncate">
                                 <div class="slds-media__body">
                                     <h2 class="slds-card__header-title">
@@ -344,18 +344,49 @@
                             </header>
                         </div>
                         <div class="slds-card__body slds-card__body_inner">
-                            <div class="slds-scrollable_x" style="height: 45vh;">
-                                <div class="slds-m-bottom_medium slds-box" style="height: 45vh;">
-                                    <lightning-datatable
-                                        key-field="id"
-                                        data={tableData}
-                                        columns={columns}
-                                        onrowaction={handleRowAction}
-                                        hide-checkbox-column="true"
-                                        show-row-number-column="false">
-                                    </lightning-datatable>
-                                </div>
+                            <!-- Scrollable Table Container -->
+                            <div style="overflow-x:auto; overflow-y:auto; max-height:400px;">
+                                <table class="slds-table slds-table_cell-buffer slds-table_bordered" style="min-width:600px;">
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                            <th scope="col" class="slds-text-title_caps">
+                                                <div class="slds-truncate" title="Competency">Competency</div>
+                                            </th>
+                                            <template for:each={specialists} for:item="specialist">
+                                                <th key={specialist.id} scope="col" class="slds-text-title_caps slds-text-align_center">
+                                                    <div class="slds-wrap" style="word-break:break-word;white-space:normal;" title={specialist.name}>
+                                                        {specialist.name}
+                                                    </div>
+                                                </th>
+                                            </template>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={tableData} for:item="row">
+                                            <tr key={row.id} class="slds-hint-parent">
+                                                <td data-label="Competency" class="slds-cell-wrap">
+                                                    <div class="slds-truncate" title={row.name}>{row.name}</div>
+                                                </td>
+                                                <template for:each={row.gradeButtons} for:item="gradeBtn">
+                                                    <td key={gradeBtn.specialistId} data-label={gradeBtn.specialistName} class="slds-text-align_center">
+                                                        <div style="display:flex;justify-content:center;">
+                                                            <button
+                                                                class={gradeBtn.cssClass}
+                                                                onclick={handleGradeClick}
+                                                                data-row-id={row.id}
+                                                                data-specialist-id={gradeBtn.specialistId}
+                                                                disabled={isFinalized}>
+                                                                {gradeBtn.grade}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </template>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
                             </div>
+                            <!-- Responsive SLDS Grading Table End -->
                         </div>
                     </div>
                 </lightning-layout-item>

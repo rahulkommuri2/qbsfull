@@ -5,3 +5,10 @@
 .slds-table th {
     background-color: ghostwhite;
 }
+
+.slds-modal {
+    z-index: 1000;
+}
+.slds-backdrop {
+    z-index: 999;
+}
