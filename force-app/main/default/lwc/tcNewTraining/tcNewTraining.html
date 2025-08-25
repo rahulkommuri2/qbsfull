@@ -225,10 +225,11 @@
                                             <template if:true={hasCourseCompetencies}>
                                                 <div style="height: 30vh;" class="slds-scrollable_y">
                                                     <lightning-datatable
-                                                        key-field="Id"
+                                                        key-field="id"
                                                         data={courseData}
                                                         columns={courseColumns}
                                                         hide-checkbox-column
+                                                        oncellchange={handleCellChange}
                                                         class="slds-table_bordered"
                                                     ></lightning-datatable>
                                                 </div>
@@ -239,13 +240,13 @@
                                                         class="slds-m-right_small slds-box"
                                                     ></lightning-formatted-text>
                                                     <lightning-input
-                                                        label="Actual Initial Training Time"
+                                                        label={actualTimeLabel}
                                                         type="time"
                                                         value={courseActualDuration}
                                                         onchange={updateCourseActualDuration}
                                                         disabled={editingDisabled}
                                                         class="slds-box"
-                                                        aria-label="Actual Initial Training Time"
+                                                        aria-label={actualTimeLabel}
                                                     ></lightning-input>
                                                 </div>
                                             </template>

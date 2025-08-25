@@ -1,133 +1,588 @@
 <template>
+
     <!-- Loading Spinner -->
     <template if:true={isLoading}>
         <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
     </template>
-
     <!-- Error Message -->
     <template if:true={errorMessage}>
         <div class="slds-notification slds-notification_toast slds-theme_error">
             <div class="slds-notification__body">
-                <lightning-icon icon-name="utility:error" variant="inverse" size="small" class="slds-m-right_small"></lightning-icon>
+                <lightning-icon icon-name="utility:error" variant="inverse" size="small"
+                    class="slds-m-right_small"></lightning-icon>
                 {errorMessage}
             </div>
         </div>
     </template>
-
     <!-- Main Content -->
     <template if:false={isLoading}>
-        <lightning-layout multiple-rows="true">
-            <lightning-layout-item size="12" padding="around-small">
-                <lightning-layout multiple-rows="true">
-                    <lightning-layout-item size="12">
-                        <lightning-button icon-name="utility:back" 
-                                            label="Back to Trainings"
-                                            variant="base" 
-                                            class="slds-m-right_x-small"
-                                            onclick={handleBackToTrainings}>
-                        </lightning-button>
-                    </lightning-layout-item>
-                    <lightning-layout-item size="12" large-device-size="4" padding="around-small">
-                        <h2 class="slds-card__header-title">
-                            <span>Training Details</span>
-                        </h2>
-                        <div class="slds-text-body_small slds-text-color_weak">
-                            If you need assistance, try reviewing our helpful guide for entering new trainings.
-                        </div>
-                    </lightning-layout-item>
-                    <lightning-layout-item size="12" large-device-size="8" padding="around-small">
-                        <lightning-layout horizontal-align="end">
-                            <lightning-layout-item size="12">
-                                <!--<lightning-button variant="brand" label="View Certs" onclick={handleViewCerts} icon-name="utility:preview" class="slds-m-around_x-small"></lightning-button>-->
-                                <lightning-button variant="brand" label="Edit Training" onclick={handleEditTraining} icon-name="utility:edit" class="slds-m-around_x-small"></lightning-button>
-                                <lightning-button variant="brand" label="Refinalize" onclick={handleRefinalize} icon-name="utility:refresh" class="slds-m-around_x-small"></lightning-button>
-                                <lightning-button variant="brand" label="Download Certs" onclick={handleDownloadCerts} icon-name="utility:download" class="slds-m-around_x-small"></lightning-button>
-                                <lightning-button variant="brand" label="Email Certs" onclick={handleEmailCerts} icon-name="utility:email" class="slds-m-around_x-small"></lightning-button>
-                                <lightning-button variant="brand" label="Request Correction" onclick={handleRequestCorrection} icon-name="utility:replace" class="slds-m-around_x-small"></lightning-button>
+        <lightning-layout multiple-rows class="slds-m-top_x-small">
+            <lightning-layout-item size="12">
+                <div>
+                    <!-- Header Section -->
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                        <lightning-layout multiple-rows>
+                            <lightning-layout-item size="12" class="slds-m-bottom_small">
+                                <template if:true={isMobileView}>
+                                    <lightning-layout horizontal-align="spread">
+                                        <lightning-layout-item size="5">
+                                            <lightning-button icon-name="utility:back" label="Back" variant="base"
+                                                class="slds-m-right_x-small" onclick={navigateToTrainings}
+                                                title="Return to training list"></lightning-button>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item size="2"></lightning-layout-item>
+                                        <lightning-layout-item size="5" class="slds-text-align_right">
+                                            <lightning-button variant="base" icon-name={mobileMenuIcon}
+                                                icon-position="right" alternative-text="Toggle Menu" label="Menu"
+                                                title="Toggle Menu" onclick={toggleMobileMenu}></lightning-button>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                    <template if:true={isMobileMenuVisible}>
+                                        <lightning-layout class="slds-m-top_small slds-box slds-p-around_small"
+                                            multiple-rows horizontal-align="center">
+                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                <lightning-button variant="neutral" icon-name="utility:edit"
+                                                    label="Edit Training" stretch onclick={editTraining}
+                                                    disabled={isNotEditable}
+                                                    title="Edit training details"></lightning-button>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                <lightning-button variant="neutral" icon-name="utility:refresh"
+                                                    label="Refinalize" stretch disabled={restrictRefinalize}
+                                                    onclick={refinalizeTraining}
+                                                    title="Refinalize training"></lightning-button>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                <lightning-button variant="neutral" icon-name="utility:download"
+                                                    label="Download Certificates" stretch disabled={restrictDownload}
+                                                    onclick={downloadCertificates}
+                                                    title="Download certificates"></lightning-button>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                <lightning-button variant="neutral" icon-name="utility:email"
+                                                    label="Email Certificates" stretch disabled={restrictEmail}
+                                                    onclick={emailCertificates}
+                                                    title="Email certificates"></lightning-button>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                <lightning-button variant="neutral" icon-name="utility:replace"
+                                                    label="Request Correction" stretch onclick={requestCorrection}
+                                                    title="Request training correction"></lightning-button>
+                                            </lightning-layout-item>
+                                        </lightning-layout>
+                                    </template>
+                                </template>
+                                <template if:false={isMobileView}>
+                                    <lightning-button icon-name="utility:back" label="Back to Trainings" variant="base"
+                                        class="slds-m-right_x-small" onclick={navigateToTrainings}
+                                        title="Return to training list"></lightning-button>
+                                </template>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" large-device-size="4" class="slds-p-around_small">
+                                <h2 class="slds-text-heading_medium slds-m-bottom_x-small">
+                                    Training Details
+                                </h2>
+                                <div class="slds-text-body_small slds-text-color_weak">
+                                    For assistance, review our guide for managing trainings.
+                                </div>
+                            </lightning-layout-item>
+                            <template if:false={isMobileView}>
+                                <lightning-layout-item size="12" large-device-size="8" class="slds-p-around_small">
+                                    <lightning-layout horizontal-align="end" pull-to-boundary="small">
+                                        <lightning-layout-item class="slds-p-horizontal_xx-small">
+                                            <lightning-button variant="brand" label="Edit Training"
+                                                icon-name="utility:edit" onclick={editTraining} disabled={isNotEditable}
+                                                title="Edit training details"></lightning-button>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item class="slds-p-horizontal_xx-small">
+                                            <lightning-button variant="brand" label="Refinalize"
+                                                icon-name="utility:refresh" disabled={restrictRefinalize}
+                                                onclick={refinalizeTraining}
+                                                title="Refinalize training"></lightning-button>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item class="slds-p-horizontal_xx-small">
+                                            <lightning-button variant="brand" label="Download Certificates"
+                                                icon-name="utility:download" disabled={restrictDownload}
+                                                onclick={downloadCertificates}
+                                                title="Download certificates"></lightning-button>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item class="slds-p-horizontal_xx-small">
+                                            <lightning-button variant="brand" label="Email Certificates"
+                                                icon-name="utility:email" disabled={restrictEmail}
+                                                onclick={emailCertificates}
+                                                title="Email certificates"></lightning-button>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item class="slds-p-horizontal_xx-small">
+                                            <lightning-button variant="brand" label="Request Correction"
+                                                icon-name="utility:replace" onclick={requestCorrection}
+                                                title="Request training correction"></lightning-button>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                </lightning-layout-item>
+                            </template>
+                        </lightning-layout>
+                    </div>
+                    <!-- Body Section -->
+                    <div class="slds-p-horizontal_medium">
+                        <lightning-layout multiple-rows>
+                            <!-- Training Details Section -->
+                            <lightning-layout-item size="12" large-device-size="6" class="slds-p-around_small">
+                                <div class="slds-theme_default">
+                                    <h3 class="slds-text-heading_small slds-border_bottom slds-p-bottom_small">Training
+                                        Details</h3>
+                                    <div class="slds-p-top_medium">
+                                        <lightning-input label="Organization" value={parentOrgName} read-only
+                                            class="slds-m-bottom_small" aria-label="Organization"></lightning-input>
+                                        <lightning-combobox label="Sub Organization" value={selectedSubOrganization}
+                                            options={subOrganizationOptions} onchange={updateSubOrganization}
+                                            disabled={editingDisabled} class="slds-m-bottom_small"
+                                            aria-label="Select Sub Organization"></lightning-combobox>
+                                        <lightning-combobox label="Certification Type" value={selectedCertificationType}
+                                            options={certificationTypeOptions} onchange={updateCertificationType}
+                                            disabled={editingDisabled} class="slds-m-bottom_small"
+                                            aria-label="Select Certification Type"></lightning-combobox>
+                                        <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
+                                            <lightning-layout-item size="6" class="slds-p-right_small">
+                                                <lightning-input type="date" label="Start Date"
+                                                    value={trainingStartDate} onchange={updateStartDate}
+                                                    disabled={editingDisabled}
+                                                    aria-label="Training Start Date"></lightning-input>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="6" class="slds-p-left_small">
+                                                <lightning-input type="date" label="End Date" value={trainingEndDate}
+                                                    onchange={updateEndDate} disabled={editingDisabled}
+                                                    aria-label="Training End Date"></lightning-input>
+                                            </lightning-layout-item>
+                                        </lightning-layout>
+                                        <lightning-combobox label="Authorization" value={selectedAuthorization}
+                                            options={authorizationOptions} onchange={updateAuthorization}
+                                            disabled={editingDisabled} class="slds-m-bottom_small"
+                                            aria-label="Select Authorization Type"></lightning-combobox>
+                                        <template if:false={isMobileView}>
+                                            <div class="slds-box slds-m-top_medium slds-theme_shade">
+                                                <lightning-layout multiple-rows="false">
+                                                    <lightning-layout-item size="6" class="slds-p-right_small">
+                                                        <div class="slds-align_absolute-center">
+                                                            <span class="slds-text-body_regular">Actual Time: <span
+                                                                    class="slds-text-heading_small slds-text-color_success"><strong>{formattedActualTrainingTime}</strong></span></span>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item size="6" class="slds-p-left_small">
+                                                        <div class="slds-align_absolute-center">
+                                                            <span class="slds-text-body_regular">Minimum Time: <span
+                                                                    class="slds-text-heading_small slds-text-color_weak"><strong>{formattedMinimumTrainingTime}</strong></span></span>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <!-- Location Details Section -->
+                            <lightning-layout-item size="12" large-device-size="6" class="slds-p-around_small">
+                                <div class="slds-theme_default">
+                                    <h3 class="slds-text-heading_small slds-border_bottom slds-p-bottom_small">Location
+                                        Details</h3>
+                                    <div class="slds-p-top_medium">
+                                        <lightning-input label="Training Location Address"
+                                            value={trainingLocationAddress} onchange={updateLocationAddress}
+                                            disabled={editingDisabled} class="slds-m-bottom_small"
+                                            aria-label="Training Location Address"></lightning-input>
+                                        <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
+                                            <lightning-layout-item size="6" class="slds-p-right_small">
+                                                <lightning-input label="City" value={locationCity} onchange={updateCity}
+                                                    disabled={editingDisabled} aria-label="City"></lightning-input>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="6" class="slds-p-left_small">
+                                                <lightning-combobox label="State/Province" value={selectedState}
+                                                    options={stateOptions} onchange={updateState}
+                                                    disabled={editingDisabled}
+                                                    aria-label="Select State or Province"></lightning-combobox>
+                                            </lightning-layout-item>
+                                        </lightning-layout>
+                                        <lightning-input label="Zip/Postal Code" value={locationZipCode}
+                                            onchange={updateZipCode} disabled={editingDisabled}
+                                            class="slds-m-bottom_small"
+                                            aria-label="Zip or Postal Code"></lightning-input>
+                                        <lightning-textarea label="Training Note" value={trainingNotes}
+                                            placeholder="For internal use only - Not for contacting QBS"
+                                            onchange={updateTrainingNotes} disabled={editingDisabled}
+                                            class="slds-m-bottom_small"
+                                            aria-label="Training Notes"></lightning-textarea>
+                                        <lightning-combobox label="Finalized" value={finalizedStatus}
+                                            options={finalizedStatusOptions} onchange={updateFinalizedStatus}
+                                            disabled={editingDisabled}
+                                            aria-label="Select Finalized Status"></lightning-combobox>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <!-- Trainers Section -->
+                            <lightning-layout-item size="12" class="slds-p-around_small">
+                                <div class="slds-theme_default">
+                                    <h3 class="slds-text-heading_small slds-border_bottom slds-p-bottom_small">Trainers
+                                    </h3>
+                                    <div class="slds-p-top_medium">
+                                        <lightning-layout multiple-rows>
+                                            <lightning-layout-item size="12" medium-device-size="6"
+                                                class="slds-p-horizontal_xx-small">
+                                                <lightning-combobox data-id="primaryFaculty" label="Primary Faculty"
+                                                    value={primaryFacultyContactId} options={primaryFacultyOptions}
+                                                    onchange={updatePrimaryFaculty} disabled={editingDisabled}
+                                                    aria-label="Select Primary Faculty"></lightning-combobox>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="12" medium-device-size="6"
+                                                class="slds-p-horizontal_xx-small">
+                                                <lightning-combobox data-id="secondaryFaculty" label="Secondary Faculty"
+                                                    value={secondaryFacultyContactId} options={secondaryFacultyOptions}
+                                                    onchange={updateSecondaryFaculty}
+                                                    disabled={secondaryFacultyDisabled}
+                                                    aria-label="Select Secondary Faculty"></lightning-combobox>
+                                            </lightning-layout-item>
+                                        </lightning-layout>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <!-- Courses Section -->
+                            <lightning-layout-item size="12" class="slds-p-around_small">
+                                <div class="slds-theme_default">
+                                    <h3 class="slds-text-heading_small slds-border_bottom slds-p-bottom_small">Courses
+                                    </h3>
+                                    <lightning-layout multiple-rows>
+                                        <lightning-layout-item size="12" large-device-size="4"
+                                            class="slds-p-around_small">
+                                            <lightning-radio-group name="courseSelection" label="Select Courses"
+                                                options={courseOptions} value={selectedCourseId}
+                                                onchange={updateCourseSelection} disabled={editingDisabled}
+                                                class="slds-p-around_small"
+                                                aria-label="Select Course"></lightning-radio-group>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item size="12" large-device-size="8"
+                                            class="slds-p-around_small">
+                                            <template if:true={hasCourseCompetencies}>
+                                                <div style="height: 30vh;" class="slds-scrollable_y slds-box">
+                                                    <lightning-datatable key-field="id" data={courseData}
+                                                        columns={courseColumns} hide-checkbox-column
+                                                        onrowaction={handleRowAction}
+                                                        draft-values={draftValues}></lightning-datatable>
+                                                </div>
+                                                <div>
+                                                    <lightning-formatted-text label="Minimum Training Time"
+                                                        value={formattedMinimumTrainingTime}
+                                                        class="slds-m-right_small slds-box"></lightning-formatted-text>
+                                                    <lightning-input label="Actual Initial Training Time" type="time"
+                                                        value={courseDuration} onchange={updateCourseDuration}
+                                                        disabled={editingDisabled} class="slds-box"
+                                                        aria-label="Actual Initial Training Time"></lightning-input>
+                                                </div>
+                                            </template>
+                                            <template if:false={hasCourseCompetencies}>
+                                                <div class="slds-illustration slds-illustration_small">
+                                                    <div class="slds-text-align_center slds-p-around_medium">
+                                                        <lightning-icon icon-name="utility:knowledge_base" size="large"
+                                                            class="slds-text-color_weak"></lightning-icon>
+                                                        <h3 class="slds-text-heading_small slds-m-top_small">No courses
+                                                            available</h3>
+                                                        <p class="slds-text-color_weak">Please select a course type to
+                                                            view available competencies</p>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                </div>
+                            </lightning-layout-item>
+                            <!-- Specialists Section -->
+                            <lightning-layout-item size="12" class="slds-p-around_small">
+                                <div class="slds-theme_default">
+                                    <lightning-layout horizontal-align="spread"
+                                        class="slds-border_bottom slds-m-bottom_small">
+                                        <lightning-layout-item size="5">
+                                            <h2 class="slds-text-heading_small">Specialists</h2>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item size="7" class="slds-text-align_right">
+                                            <template if:true={isMobileView}>
+                                                <lightning-button label="Add New Specialist" variant="base"
+                                                    icon-name="utility:adduser" onclick={openSpecialistModal}
+                                                    disabled={editingDisabled} class="slds-m-bottom_xx-small"
+                                                    title="Create new specialist"></lightning-button>
+                                            </template>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                    <div class="slds-p-top_medium">
+                                        <lightning-layout multiple-rows="false" horizontal-align="spread"
+                                            class="slds-m-bottom_medium">
+                                            <lightning-layout-item size="12" medium-device-size="6"
+                                                large-device-size="6" class="slds-p-right_small">
+                                                <lightning-combobox data-id="specialist" label="Add Specialist"
+                                                    placeholder="Search for a Specialist to add"
+                                                    value={selectedSpecialistContactId} options={specialistOptions}
+                                                    onchange={updateSpecialistSelection}
+                                                    disabled={specialistComboboxDisabled}
+                                                    spinner-active={isSpecialistLoading}
+                                                    aria-label="Select Specialist"></lightning-combobox>
+                                            </lightning-layout-item>
+                                            <template if:false={isMobileView}>
+                                                <lightning-layout-item size="12" medium-device-size="3"
+                                                    large-device-size="3"
+                                                    class="slds-m-top_large slds-text-align_right">
+                                                    <lightning-button label="Add New Specialist" variant="brand"
+                                                        icon-name="utility:adduser" onclick={openSpecialistModal}
+                                                        disabled={editingDisabled} class="slds-m-top_small"
+                                                        title="Create new specialist"></lightning-button>
+                                                </lightning-layout-item>
+                                            </template>
+                                        </lightning-layout>
+                                        <!-- Modal -->
+                                        <template if:true={isModalOpen}>
+                                            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01"
+                                                aria-modal="true" class="slds-modal slds-fade-in-open">
+                                                <div class="slds-modal__container">
+                                                    <header class="slds-modal__header">
+                                                        <button
+                                                            class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                                            title="Close" onclick={handleCloseModal}>
+                                                            <lightning-icon icon-name="utility:close" size="small"
+                                                                alternative-text="Close"></lightning-icon>
+                                                        </button>
+                                                        <h2 id="modal-heading-01" class="slds-text-heading_medium">Add
+                                                            New Specialist</h2>
+                                                    </header>
+                                                    <div class="slds-modal__content">
+                                                        <lightning-layout multiple-rows="true"
+                                                            class="slds-m-horizontal_medium">
+                                                            <lightning-layout-item size="12" padding="top-small">
+                                                                <lightning-input label="Organization" type="text"
+                                                                    value={parentOrgName} name="organization" read-only
+                                                                    class=""
+                                                                    aria-label="Organization"></lightning-input>
+                                                            </lightning-layout-item>
+                                                            <lightning-layout-item size="12" padding="top-small">
+                                                                <lightning-combobox name="subOrg"
+                                                                    label="Sub Organization" value={newSpecialistOrgId}
+                                                                    placeholder="Select Sub Organization"
+                                                                    options={subOrganizationOptions}
+                                                                    onchange={updateNewSpecialistOrgId} required
+                                                                    class=""
+                                                                    aria-label="Select Specialist Sub Organization"></lightning-combobox>
+                                                            </lightning-layout-item>
+                                                            <lightning-layout-item size="6" padding="top-small">
+                                                                <lightning-input label="First Name *" type="text"
+                                                                    name="firstName" value={newSpecialistFirstName}
+                                                                    onchange={updateNewSpecialistFirstName} required
+                                                                    class="slds-m-right_small"
+                                                                    aria-label="Specialist First Name"></lightning-input>
+                                                            </lightning-layout-item>
+                                                            <lightning-layout-item size="6" padding="top-small">
+                                                                <lightning-input label="Last Name *" type="text"
+                                                                    name="lastName" value={newSpecialistLastName}
+                                                                    onchange={updateNewSpecialistLastName} required
+                                                                    class="slds-m-left_small"
+                                                                    aria-label="Specialist Last Name"></lightning-input>
+                                                            </lightning-layout-item>
+                                                            <lightning-layout-item size="6" padding="top-small">
+                                                                <lightning-input label="Email" type="email" name="email"
+                                                                    value={newSpecialistEmail}
+                                                                    onchange={updateNewSpecialistEmail}
+                                                                    class="slds-m-bottom_small slds-m-right_small"
+                                                                    aria-label="Specialist Email"></lightning-input>
+                                                            </lightning-layout-item>
+                                                            <lightning-layout-item size="6" padding="top-small">
+                                                                <lightning-input label="ID/Department" type="text"
+                                                                    name="dept" value={newSpecialistDepartment}
+                                                                    onchange={updateNewSpecialistDepartment}
+                                                                    class="slds-m-bottom_small slds-m-left_small"
+                                                                    aria-label="Specialist Department"></lightning-input>
+                                                            </lightning-layout-item>
+                                                        </lightning-layout>
+                                                    </div>
+                                                    <footer class="slds-modal__footer">
+                                                        <lightning-button variant="neutral" label="Cancel"
+                                                            onclick={handleCloseModal} class="slds-m-right_small"
+                                                            title="Cancel specialist creation"></lightning-button>
+                                                        <lightning-button variant="brand" label="Add"
+                                                            onclick={handleAdd}
+                                                            title="Add new specialist"></lightning-button>
+                                                    </footer>
+                                                </div>
+                                            </section>
+                                            <div class="slds-backdrop slds-backdrop_open"></div>
+                                        </template>
+                                        <template if:true={hasSpecialistsAssigned}>
+                                            <div class="specialist-table-container">
+                                                <div class="slds-scrollable_x">
+                                                    <table
+                                                        class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                                        <thead>
+                                                            <tr class="slds-line-height_reset">
+                                                                <th class="slds-text-title_caps table-header"
+                                                                    scope="col">
+                                                                    <div class="slds-truncate">Name</div>
+                                                                </th>
+                                                                <th class="slds-text-title_caps table-header"
+                                                                    scope="col">
+                                                                    <div class="slds-truncate">Organization</div>
+                                                                </th>
+                                                                <th class="slds-text-title_caps table-header"
+                                                                    scope="col">
+                                                                    <div class="slds-truncate">Email Address</div>
+                                                                </th>
+                                                                <th class="slds-text-title_caps table-header"
+                                                                    scope="col">
+                                                                    <div class="slds-truncate">ID/Department</div>
+                                                                </th>
+                                                                <th class="slds-text-title_caps table-header"
+                                                                    scope="col">
+                                                                    <div class="slds-truncate">Status</div>
+                                                                </th>
+                                                                <th class="slds-text-title_caps table-header"
+                                                                    scope="col">
+                                                                    <div class="slds-truncate">Remove</div>
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <template for:each={specialists} for:item="specialist">
+                                                                <tr key={specialist.contactId} class="slds-hint-parent">
+                                                                    <td data-label="Name">
+                                                                        <div class="slds-truncate specialist-name">
+                                                                            <lightning-icon icon-name="standard:contact"
+                                                                                size="x-small"
+                                                                                class="slds-m-right_x-small"></lightning-icon>
+                                                                            {specialist.name}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td data-label="Organization">
+                                                                        <div class="slds-truncate">
+                                                                            {specialist.accountName}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td data-label="Email">
+                                                                        <div class="slds-truncate">
+                                                                            <template
+                                                                                if:true={specialist.specialistEmail}>
+                                                                                <a href={specialist.emailLink}
+                                                                                    class="email-link">
+                                                                                    {specialist.specialistEmail}
+                                                                                </a>
+                                                                            </template>
+                                                                            <template
+                                                                                if:false={specialist.specialistEmail}>
+                                                                                <span class="slds-text-color_weak">No
+                                                                                    email</span>
+                                                                            </template>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td data-label="ID/Department">
+                                                                        <div class="slds-truncate">
+                                                                            {specialist.department}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td data-label="Status">
+                                                                        <div class="slds-truncate">
+                                                                            <template if:true={specialist.grade}>
+                                                                                <lightning-badge
+                                                                                    label={specialist.grade}
+                                                                                    class="grade-badge"></lightning-badge>
+                                                                            </template>
+                                                                            <template if:false={specialist.grade}>
+                                                                                <span class="slds-text-color_weak">Not
+                                                                                    graded</span>
+                                                                            </template>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td data-label="Actions">
+                                                                        <lightning-button-icon
+                                                                            icon-name="utility:delete" variant="bare"
+                                                                            alternative-text="Remove specialist"
+                                                                            title="Remove specialist" size="small"
+                                                                            data-specialist-id={specialist.contactId}
+                                                                            onclick={removeSpecialist}
+                                                                            disabled={editingDisabled}
+                                                                            class="slds-align_absolute-center"></lightning-button-icon>
+                                                                    </td>
+                                                                </tr>
+                                                            </template>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template if:false={hasSpecialistsAssigned}>
+                                            <div class="slds-illustration slds-illustration_small">
+                                                <div class="slds-text-align_center slds-p-around_medium">
+                                                    <lightning-icon icon-name="utility:groups" size="large"
+                                                        class="slds-text-color_weak"></lightning-icon>
+                                                    <h3 class="slds-text-heading_small slds-m-top_small">No specialists
+                                                        added</h3>
+                                                    <p class="slds-text-color_weak">Add specialists to this training
+                                                        session</p>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <!-- Action Buttons Section -->
+                            <lightning-layout-item size="12" class="slds-p-around_small">
+                                <div class="slds-card__footer">
+                                    <lightning-layout horizontal-align="spread" vertical-align="center" multiple-rows>
+                                        <lightning-layout-item size="12" large-device-size="6"
+                                            class="slds-p-around_small">
+                                            <div class="slds-text-color_weak slds-text-body_small slds-text-align_left">
+                                                <template if:true={editingDisabled}>
+                                                    <lightning-icon icon-name="utility:lock" size="x-small"
+                                                        class="slds-m-right_x-small"></lightning-icon>
+                                                    Editing is disabled for this training
+                                                </template>
+                                                <template if:false={editingDisabled}>
+                                                    <lightning-icon icon-name="utility:edit" size="x-small"
+                                                        class="slds-m-right_x-small"></lightning-icon>
+                                                    Training is editable
+                                                </template>
+                                            </div>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item size="12" large-device-size="6"
+                                            class="slds-p-around_small">
+                                            <template if:true={isMobileView}>
+                                                <lightning-layout horizontal-align="center" vertical-align="center"
+                                                    multiple-rows>
+                                                    <lightning-layout-item class="slds-p-around_xx-small" size="12">
+                                                        <lightning-button label="Save" variant="brand" stretch
+                                                            icon-name="utility:save" onclick={saveTraining}
+                                                            disabled={editingDisabled}
+                                                            title="Save training"></lightning-button>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item class="slds-p-around_xx-small" size="12">
+                                                        <lightning-button label="Grade & Finalize" variant="brand"
+                                                            stretch icon-name="utility:check" onclick={gradeAndFinalize}
+                                                            disabled={editingDisabled}
+                                                            title="Grade and finalize training"></lightning-button>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </template>
+                                            <template if:false={isMobileView}>
+                                                <lightning-layout horizontal-align="end">
+                                                    <lightning-layout-item class="slds-p-horizontal_xx-small">
+                                                        <lightning-button label="Save" variant="brand"
+                                                            icon-name="utility:save" onclick={saveTraining}
+                                                            disabled={editingDisabled}
+                                                            title="Save training"></lightning-button>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item class="slds-p-horizontal_xx-small">
+                                                        <lightning-button label="Grade & Finalize" variant="brand"
+                                                            icon-name="utility:check" onclick={gradeAndFinalize}
+                                                            disabled={editingDisabled}
+                                                            title="Grade and finalize training"></lightning-button>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </template>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                </div>
                             </lightning-layout-item>
                         </lightning-layout>
-                    </lightning-layout-item>
-                </lightning-layout>
-            </lightning-layout-item>
-            
-            <lightning-layout-item size="12" large-device-size="12" padding="around-small">
-                <div class="slds-theme_default">
-                    
-                    <lightning-layout multiple-rows="true">
-                        <lightning-layout-item size="6" class="slds-box slds-box_xx-small">
-                            <p class="slds-text-heading_small slds-border_bottom">Training Details</p>
-                            
-                        </lightning-layout-item>
-                        <lightning-layout-item size="6" class="slds-box slds-box_xx-small">
-                            <p class="slds-text-heading_small slds-border_bottom">Location Details</p>
-                        </lightning-layout-item>
-                        <lightning-layout-item size="12" class="slds-box slds-box_xx-small">
-                            <p class="slds-text-heading_small slds-border_bottom">Trainers</p>
-                            <lightning-layout>
-                                <lightning-layout-item size="6" class="slds-box slds-box_xx-small">
-                                    <lightning-record-picker
-                                        label="Select Primary Trainer"
-                                        options={trainerOptions}
-                                        value={primaryTrainerId}
-                                        onchange={handlePrimaryTrainerChange}
-                                    ></lightning-record-picker>
-                                </lightning-layout-item>
-                                <lightning-layout-item size="6" class="slds-box slds-box_xx-small">
-                                    <lightning-record-picker
-                                        label="Select Secondary Trainer"
-                                        options={trainerOptions}
-                                        value={secondaryTrainerId}
-                                        onchange={handleSecondaryTrainerChange}
-                                    ></lightning-record-picker>
-                                </lightning-layout-item>
-                            </lightning-layout>
-                        </lightning-layout-item>
-                        <lightning-layout-item size="12" class="slds-box slds-box_xx-small">
-                            <lightning-layout>
-                                <lightning-layout-item size="6" class="slds-box slds-box_xx-small">
-                                    <lightning-radio-group
-                                        name="trainingType"
-                                        label="Training Type"
-                                        options={trainingTypeOptions}
-                                        value={selectedTrainingType}
-                                        onchange={handleTrainingTypeChange}
-                                    ></lightning-radio-group>
-                                </lightning-layout-item>
-                                <lightning-layout-item size="6" class="slds-box slds-box_xx-small">
-                                    <lightning-layout>
-                                        <lightning-layout-item size="12" class="slds-box slds-box_xx-small">
-                                            <lightning-datatable
-                                                    key-field="id"
-                                                    data={data}
-                                                    columns={columns}>
-                                            </lightning-datatable>
-                                        </lightning-layout-item>
-                                        <lightning-layout-item size="12" class="slds-box slds-box_xx-small">
-                                            <lightning-input label="Time" value={time} onchange={handleTimeChange}></lightning-input>
-                                        </lightning-layout-item>
-                                    </lightning-layout>
-                                </lightning-layout-item>
-                            </lightning-layout>
-                        </lightning-layout-item>
-                        <lightning-layout-item size="12" class="slds-box slds-box_xx-small">
-                            <p>Specialist Details</p>
-                            <lightning-layout multiple-rows="true">
-                                <lightning-layout-item size="12" class="slds-box slds-box_xx-small">
-                                    <lightning-layout>
-                                        <lightning-layout-item size="8" class="slds-box slds-box_xx-small">
-                                            <p>Specialist Search input</p>
-                                        </lightning-layout-item>
-                                        <lightning-layout-item size="4" class="slds-box slds-box_xx-small">
-                                            <lightning-button variant="neutral" label="Add a new Specialist" class="slds-m-top_small"></lightning-button>
-                                        </lightning-layout-item>
-                                    </lightning-layout>
-                                </lightning-layout-item>
-                                <lightning-layout-item size="12" class="slds-box slds-box_xx-small">
-                                    <p>Specialist Data table</p>
-                                </lightning-layout-item>
-                            </lightning-layout>
-                        </lightning-layout-item>
-                    </lightning-layout>
+                    </div>
                 </div>
             </lightning-layout-item>
         </lightning-layout>

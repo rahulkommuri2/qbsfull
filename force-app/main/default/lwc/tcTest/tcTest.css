@@ -1,13 +1,9 @@
 .slds-table th {
     background-color: ghostwhite;
 }
-
 .slds-modal {
     z-index: 1000;
 }
 .slds-backdrop {
     z-index: 999;
-}
-.border_bottom {
-    border-bottom: 1px solid #d0c3f0;
 }

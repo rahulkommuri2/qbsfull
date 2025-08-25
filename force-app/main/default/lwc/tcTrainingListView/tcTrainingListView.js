@@ -4,8 +4,9 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 import getTrainingsPageData from "@salesforce/apex/tcPortalController.getTrainingsPageData";
 import generateCertificate from "@salesforce/apex/tcCertificateController.generateCertificate";
-import initializePage from "@salesforce/apex/tcCertificateController.initializePage";
 import getTrainingPrintPageUrl from '@salesforce/apex/tcCertificateController.getTrainingPrintPageUrl';
+import getSpecialistsForTraining from "@salesforce/apex/tcCertificateController.getSpecialistsForTraining";
+import getGradingSpecialists from "@salesforce/apex/tcTrainingGradingController.initializePage";
 
 import { refreshApex } from "@salesforce/apex";
 import { getRecord } from "lightning/uiRecordApi";
@@ -327,6 +328,37 @@ export default class TcTrainingListView extends NavigationMixin(
     }
   }
 
+  // Add this method to handle the view certificate action for a specialist row
+  async handleViewCertificateRow(event) {
+    const regId = event.currentTarget.dataset.id;
+    if (!regId) return;
+    this.isLoading = true;
+    try {
+        // import generateCertificate from '@salesforce/apex/tcCertificateController.generateCertificate';
+        const result = await generateCertificate({ trainingId: regId });
+        if (
+            result &&
+            Array.isArray(result) &&
+            result.length > 0 &&
+            result[0].documentBase64
+        ) {
+            const link = document.createElement("a");
+            link.href = "data:application/pdf;base64," + result[0].documentBase64;
+            link.download = "Certificate.pdf";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            this.showToast("Success", "Certificate generated and downloaded.", "success");
+        } else {
+            this.showToast("Error", "Certificate not found.", "error");
+        }
+    } catch (err) {
+        this.showToast("Error", err.body?.message || err.message, "error");
+    } finally {
+        this.isLoading = false;
+    }
+  }
+
   handleEditAction(event) {
     const recordId = event.currentTarget.dataset.id;
     this[NavigationMixin.Navigate]({
@@ -465,5 +497,86 @@ export default class TcTrainingListView extends NavigationMixin(
   refreshData() {
     this.isLoading = true;
     return refreshApex(this.wiredTrainingsResult);
+  }
+
+  @track isEmailModalOpen = false;
+  @track emailModalSpecialists = [];
+  @track selectedSpecialistIds = new Set();
+  @track ccEmailValue = '';
+  @track currentTrainingId = '';
+
+  // Fix: Use correct parameter names for Apex method call
+  async handleEmailAction(event) {
+    const trainingId = event.currentTarget.dataset.id;
+    this.currentTrainingId = trainingId;
+    this.isLoading = true;
+    try {
+        // Fetch specialist data for the selected training using the correct Apex method
+        const specialists = await getSpecialistsForTraining({ trainingId, conId: this.contactId });
+        console.log('Specialists:', specialists);
+
+        // Map the returned specialist data for modal display
+        this.emailModalSpecialists = (specialists || []).map(spec => ({
+            regId: spec.GradeId, // Register No
+            email: spec.SpecialistEmail,
+            name: spec.name,
+            certification: spec.CertificationName || '',
+            overallGrade: spec.gradeName || spec.grade || '', // Use gradeName for overall grade
+            restrictions: spec.restrictions || '',
+            checked: false
+        }));
+        console.log('emailModalSpecialists:', this.emailModalSpecialists);
+
+        this.selectedSpecialistIds = new Set();
+        this.ccEmailValue = '';
+        this.isEmailModalOpen = true;
+    } catch (err) {
+        console.error('Failed to load specialists:', err);
+        this.showToast('Error', 'Failed to load specialists.', 'error');
+    } finally {
+        this.isLoading = false;
+    }
+  }
+
+  handleEmailModalClose() {
+    this.isEmailModalOpen = false;
+  }
+
+  handleSpecialistCheckboxChange(event) {
+    const regId = event.target.dataset.regid;
+    if (event.target.checked) {
+      this.selectedSpecialistIds.add(regId);
+    } else {
+      this.selectedSpecialistIds.delete(regId);
+    }
+    this.selectedSpecialistIds = new Set(this.selectedSpecialistIds);
+  }
+
+  handleCcEmailChange(event) {
+    this.ccEmailValue = event.target.value;
+  }
+
+  async handleSendEmailCertificates() {
+    this.isLoading = true;
+    try {
+      const gradeIds = Array.from(this.selectedSpecialistIds);
+      if (gradeIds.length === 0) {
+        this.showToast('Error', 'Please select at least one specialist.', 'error');
+        this.isLoading = false;
+        return;
+      }
+      // import emailCertificate from '@salesforce/apex/tcCertificateController.emailCertificate';
+      const result = await emailCertificate({ GradeId: gradeIds, CCEmail: this.ccEmailValue || "" });
+      if (result === "Success") {
+        this.showToast("Success", "Certificates emailed successfully", "success");
+        this.isEmailModalOpen = false;
+      } else {
+        this.showToast("Error", "Email failed", "error");
+      }
+    } catch (error) {
+      this.showToast("Error", error.body ? error.body.message : error.message, "error");
+    } finally {
+      this.isLoading = false;
+    }
   }
 }

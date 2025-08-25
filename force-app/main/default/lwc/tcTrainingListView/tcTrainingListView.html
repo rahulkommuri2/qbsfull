@@ -386,4 +386,63 @@
             </div>
         </div>
     </div>
+
+    <!-- Email Modal -->
+    <template if:true={isEmailModalOpen}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="emailModalHeading"
+            class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 id="emailModalHeading" class="slds-modal__title slds-hyphenate">Send Certificates by Email</h2>
+                    <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={handleEmailModalClose}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" size="small"></lightning-icon>
+                    </button>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-input label="CC Email (optional)" value={ccEmailValue} onchange={handleCcEmailChange}></lightning-input>
+                    <div style="max-height:300px;overflow:auto;">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Register No</th>
+                                    <th>Email</th>
+                                    <th>Specialist Name</th>
+                                    <th>Certification</th>
+                                    <th>Overall Grade</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={emailModalSpecialists} for:item="spec">
+                                    <tr key={spec.regId}>
+                                        <td>
+                                            <lightning-input type="checkbox"
+                                                checked={spec.checked}
+                                                data-regid={spec.regId}
+                                                onchange={handleSpecialistCheckboxChange}>
+                                            </lightning-input>
+                                        </td>
+                                        <td>{spec.regId}</td>
+                                        <td>{spec.email}</td>
+                                        <td>{spec.name}</td>
+                                        <td>{spec.certification}</td>
+                                        <td>{spec.overallGrade}</td>
+                                        <td>
+                                            <a href="javascript:void(0);" data-id={spec.regId} onclick={handleViewCertificateRow}>View</a>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="Cancel" onclick={handleEmailModalClose} class="slds-m-right_medium"></lightning-button>
+                    <lightning-button variant="brand" label="Send Email" onclick={handleSendEmailCertificates}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
 </template>

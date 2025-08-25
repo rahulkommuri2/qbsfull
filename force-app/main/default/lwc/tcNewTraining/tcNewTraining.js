@@ -18,9 +18,9 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     @track parentOrgName = '';
     @track selectedSubOrganization = '';
     @track selectedCertificationType = '';
-    @track trainingStartDate = '';
+    @track trainingStartDate = new Date().toISOString().split('T')[0];
     @track trainingEndDate = '';
-    @track selectedAuthorization = 'None';
+    @track selectedAuthorization = '';
     @track trainingLocationAddress = '';
     @track locationCity = '';
     @track selectedState = '';
@@ -48,7 +48,8 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     @track subOrganizationOptions = [];
     @track certificationTypeOptions = [];
     @track authorizationOptions = [
-        { label: 'None', value: 'None' },
+        { label: 'Select Authorization', value: '' },
+        { label: 'Standard', value: 'Standard' },
         { label: 'Collaborative', value: 'Collaborative' },
         { label: 'Third Party', value: 'Third Party' }
     ];
@@ -57,6 +58,7 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     @track secondaryTrainerOptions = [];
     @track specialistOptions = [];
     @track stateOptions = [
+        { label: 'Select State/Province', value: '' },
         { label: 'Alabama', value: 'AL' }, { label: 'Alaska', value: 'AK' }, { label: 'Arizona', value: 'AZ' },
         { label: 'Arkansas', value: 'AR' }, { label: 'California', value: 'CA' }, { label: 'Colorado', value: 'CO' },
         { label: 'Connecticut', value: 'CT' }, { label: 'Delaware', value: 'DE' }, { label: 'Florida', value: 'FL' },
@@ -77,13 +79,13 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     ];
 
     courseColumns = [
-        { label: 'Competency', fieldName: 'Name', type: 'text' },
-        { label: 'Chapter', fieldName: 'Chapter__c', type: 'text' },
-        { label: 'Initial Time', fieldName: 'Initial_Time__c', type: 'text' },
-        { label: 'Recert Time', fieldName: 'Recert_Time__c', type: 'text' },
+        { label: 'Competency', fieldName: 'name', type: 'text' },
+        { label: 'Chapter', fieldName: 'chapter', type: 'text' },
+        { label: 'Initial Time', fieldName: 'initialTime', type: 'text' },
+        { label: 'Recert Time', fieldName: 'recertTime', type: 'text' },
         { 
             label: 'Taught', 
-            fieldName: 'Taught__c', 
+            fieldName: 'taught', 
             type: 'boolean', 
             editable: true 
         }
@@ -95,6 +97,10 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
 
     get secondaryFacultyDisabled() {
         return !this.primaryFacultyContactId || this.editingDisabled;
+    }
+
+    get actualTimeLabel() {
+        return this.selectedCertificationType === 'Initial' ? 'Actual Initial Training Time' : 'Actual Recert Training Time';
     }
 
     @wire(getRecord, { recordId: userId, fields: [CONTACT_ID_FIELD] })
@@ -120,7 +126,7 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     }
 
     handleResize() {
-        this.isMobileView = formFactorPropertyName === 'Small';
+        this.isMobileView = window.innerWidth < 768;
     }
 
     loadInitialData() {
@@ -143,17 +149,20 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
 
         try {
             this.parentOrgName = this.trainingData.organizationName || '';
-            this.subOrganizationOptions = (this.trainingData.childOrganizations || []).map(org => ({
-                label: org.Name,
-                value: org.Id
-            }));
+            this.subOrganizationOptions = [
+                { label: this.trainingData.organizationName, value: this.trainingData.organizationId },
+                ...(this.trainingData.childOrganizations || []).map(org => ({
+                    label: org.Name,
+                    value: org.Id
+                }))
+            ];
             this.selectedSubOrganization = this.trainingData.organizationId || '';
 
-            const certTypes = new Set((this.trainingData.courses || []).map(course => course.Certification_Type__c).filter(type => type));
-            this.certificationTypeOptions = Array.from(certTypes).map(type => ({
-                label: type,
-                value: type
-            }));
+            this.certificationTypeOptions = [
+                { label: 'Select Certification Type', value: '' },
+                { label: 'Initial', value: 'Initial' },
+                { label: 'Recertification', value: 'Recertification' }
+            ];
 
             this.courseOptions = (this.trainingData.courses || []).map(course => ({
                 label: course.Name,
@@ -161,12 +170,10 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
             }));
 
             this.trainerOptions = (this.trainingData.trainers || []).map(trainer => ({
-                label: `${trainer.FirstName} ${trainer.LastName}`,
-                value: trainer.Id,
-                certificationStatus: trainer.Certification_Contact_Status__c,
-                certifiedCourses: this.trainingData.trainerCertificationMap ? this.trainingData.trainerCertificationMap[trainer.Id] : []
+                label: trainer.Name,
+                value: trainer.Id
             }));
-            this.secondaryTrainerOptions = this.trainerOptions;
+            this.secondaryTrainerOptions = [{ label: 'Select Secondary Faculty', value: '' }, ...this.trainerOptions];
 
             this.updateSpecialistOptions();
             this.editingDisabled = !(this.trainingData.viewTrainers && this.trainingData.viewSpecialist);
@@ -176,17 +183,16 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     }
 
     updateSpecialistOptions() {
-        this.specialistOptions = (this.trainingData.specialists || [])
-            .filter(specialist => !this.specialists.some(s => s.contactId === specialist.Id))
-            .map(specialist => ({
-                label: specialist.Name,
-                value: specialist.Id,
-                email: specialist.Email,
-                department: specialist.Department,
-                accountName: specialist.Account?.Name || '',
-                type: specialist.Type__c
-            }))
-            .sort((a, b) => a.label.localeCompare(b.label));
+        this.specialistOptions = [
+            { label: 'Search for a Specialist', value: '' },
+            ...(this.trainingData.specialists || [])
+                .filter(specialist => !this.specialists.some(s => s.contactId === specialist.Id))
+                .map(specialist => ({
+                    label: `${specialist.Name} - ${specialist.Account?.Name || ''}`,
+                    value: specialist.Id
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label))
+        ];
     }
 
     navigateToTrainings() {
@@ -197,19 +203,20 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
                 actionName: 'list'
             },
             state: {
-                filterName: 'Recent'
+                c__contactId: this.contactId
             }
         });
     }
 
     updateSubOrganization(event) {
         this.selectedSubOrganization = event.detail.value;
-        this.newSpecialistOrgId = this.selectedSubOrganization; // Sync modal sub-org
+        this.newSpecialistOrgId = this.selectedSubOrganization;
     }
 
     updateCertificationType(event) {
         this.selectedCertificationType = event.detail.value;
         this.selectedCourseType = '';
+        this.courseActualDuration = '';
         this.updateCourseCompetencies();
     }
 
@@ -225,9 +232,6 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
 
     updateAuthorization(event) {
         this.selectedAuthorization = event.detail.value;
-        if (this.selectedAuthorization !== 'None') {
-            this.loadInitialData();
-        }
     }
 
     updateLocationAddress(event) {
@@ -253,9 +257,10 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     updatePrimaryFaculty(event) {
         this.primaryFacultyContactId = event.detail.value;
         this.secondaryFacultyContactId = '';
-        this.secondaryTrainerOptions = this.trainerOptions.filter(
-            option => option.value !== this.primaryFacultyContactId
-        );
+        this.secondaryTrainerOptions = [
+            { label: 'Select Secondary Faculty', value: '' },
+            ...this.trainerOptions.filter(option => option.value !== this.primaryFacultyContactId)
+        ];
         this.template.querySelector('lightning-combobox[data-id="secondaryFaculty"]').value = '';
     }
 
@@ -272,21 +277,40 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
         this.courseActualDuration = event.detail.value;
     }
 
+    handleCellChange(event) {
+        const draftValues = event.detail.draftValues;
+        const updatedData = this.courseData.map(row => {
+            const draft = draftValues.find(d => d.id === row.id);
+            return draft ? { ...row, ...draft } : row;
+        });
+        this.courseData = updatedData;
+        this.courseMinimumDuration = this.formatTime(
+            this.selectedCertificationType === 'Initial' ?
+            this.courseData.reduce((sum, comp) => sum + (comp.taught ? comp.initialMinutes : 0), 0) :
+            this.courseData.reduce((sum, comp) => sum + (comp.taught ? comp.recertMinutes : 0), 0)
+        );
+    }
+
     updateCourseCompetencies() {
         if (this.selectedCourseType && this.trainingData?.courseCompetencies) {
             this.courseData = this.trainingData.courseCompetencies
                 .filter(comp => comp.Course__c === this.selectedCourseType)
                 .map(comp => ({
-                    Id: comp.Id,
-                    Name: comp.Name,
-                    Chapter__c: comp.Chapter__c || '',
-                    Initial_Time__c: this.formatTime(comp.Initial_Time__c),
-                    Recert_Time__c: this.formatTime(comp.Recert_Time__c),
-                    Taught__c: comp.Taught__c || false
+                    id: comp.Id,
+                    name: comp.Name,
+                    chapter: comp.Chapter__c || '',
+                    initialTime: this.formatTime(comp.Initial_Time__c),
+                    recertTime: this.formatTime(comp.Recert_Time__c),
+                    initialMinutes: comp.Initial_Time__c || 0,
+                    recertMinutes: comp.Recert_Time__c || 0,
+                    taught: comp.Taught__c || false
                 }));
             this.hasCourseCompetencies = this.courseData.length > 0;
-            const totalInitialTime = this.courseData.reduce((sum, comp) => sum + (comp.Initial_Time__c ? parseFloat(comp.Initial_Time__c) : 0), 0);
-            this.courseMinimumDuration = this.formatTime(totalInitialTime);
+            this.courseMinimumDuration = this.formatTime(
+                this.selectedCertificationType === 'Initial' ?
+                this.courseData.reduce((sum, comp) => sum + (comp.taught ? comp.initialMinutes : 0), 0) :
+                this.courseData.reduce((sum, comp) => sum + (comp.taught ? comp.recertMinutes : 0), 0)
+            );
         } else {
             this.courseData = [];
             this.hasCourseCompetencies = false;
@@ -325,12 +349,12 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
             {
                 contactId: specialistData.Id,
                 name: specialistData.Name,
+                firstName: specialistData.FirstName,
+                lastName: specialistData.LastName,
                 specialistEmail: specialistData.Email || '',
                 emailLink: specialistData.Email ? `mailto:${specialistData.Email}` : '',
-                accountId: specialistData.AccountId || '',
                 accountName: specialistData.Account?.Name || '',
                 department: specialistData.Department || '',
-                type: specialistData.Type__c || '',
                 grade: ''
             }
         ];
@@ -343,7 +367,7 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
 
     openSpecialistModal() {
         this.isModalOpen = true;
-        this.newSpecialistOrgId = this.selectedSubOrganization; // Default to selected sub-org
+        this.newSpecialistOrgId = this.selectedSubOrganization;
     }
 
     handleCloseModal() {
@@ -375,73 +399,59 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
         this.newSpecialistOrgId = event.detail.value;
     }
 
-    handleAdd() {
+    async handleAdd() {
         if (!this.newSpecialistFirstName || !this.newSpecialistLastName || !this.newSpecialistOrgId) {
             this.showToast('Error', 'First Name, Last Name, and Sub Organization are required', 'error');
             return;
         }
 
         this.isLoading = true;
-        createSpecialist({
-            accountId: this.newSpecialistOrgId,
-            firstName: this.newSpecialistFirstName,
-            lastName: this.newSpecialistLastName,
-            email: this.newSpecialistEmail,
-            department: this.newSpecialistDepartment,
-            isValidate: false,
-            contactId: null,
-            contactType: 'Specialist'
-        })
-            .then(result => {
-                if (result.message === 'success' && result.contacts?.[0]?.Id) {
-                    this.specialists = [
-                        ...this.specialists,
-                        {
-                            contactId: result.contacts[0].Id,
-                            name: `${result.contacts[0].FirstName} ${result.contacts[0].LastName}`,
-                            specialistEmail: result.contacts[0].Email || '',
-                            emailLink: result.contacts[0].Email ? `mailto:${result.contacts[0].Email}` : '',
-                            accountId: result.contacts[0].AccountId || '',
-                            accountName: this.subOrganizationOptions.find(opt => opt.value === result.contacts[0].AccountId)?.label || '',
-                            department: result.contacts[0].Department || '',
-                            type: result.contacts[0].Type__c || '',
-                            grade: ''
-                        }
-                    ];
-                    this.updateSpecialistsView();
-                    this.handleCloseModal();
-                    this.showToast('Success', 'Specialist created and added successfully', 'success');
-                    this.loadInitialData(); // Refresh specialist options
-                } else {
-                    this.handleError('Error creating specialist', new Error(result.message || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                this.handleError('Error creating specialist', error);
-            })
-            .finally(() => {
-                this.isLoading = false;
+        try {
+            const result = await createSpecialist({
+                accountId: this.newSpecialistOrgId,
+                firstName: this.newSpecialistFirstName,
+                lastName: this.newSpecialistLastName,
+                email: this.newSpecialistEmail,
+                department: this.newSpecialistDepartment,
+                isValidate: false,
+                contactId: '',
+                contactType: 'Specialist'
             });
+
+            if (result.message === 'success' && result.contacts?.[0]?.Id) {
+                this.specialists = [
+                    ...this.specialists,
+                    {
+                        contactId: result.contacts[0].Id,
+                        name: `${result.contacts[0].FirstName} ${result.contacts[0].LastName}`,
+                        firstName: result.contacts[0].FirstName,
+                        lastName: result.contacts[0].LastName,
+                        specialistEmail: result.contacts[0].Email || '',
+                        emailLink: result.contacts[0].Email ? `mailto:${result.contacts[0].Email}` : '',
+                        accountName: this.subOrganizationOptions.find(opt => opt.value === result.contacts[0].AccountId)?.label || '',
+                        department: result.contacts[0].Department || '',
+                        grade: ''
+                    }
+                ];
+                this.updateSpecialistsView();
+                this.handleCloseModal();
+                this.showToast('Success', 'Specialist created and added successfully', 'success');
+                await this.loadInitialData(); // Refresh specialist options
+            } else {
+                this.handleError('Error creating specialist', new Error(result.message || 'Unknown error'));
+            }
+        } catch (error) {
+            this.handleError('Error creating specialist', error);
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     removeSpecialist(event) {
-        const specialistId = event.target.dataset.specialistId;
-        const specialistData = this.trainingData.specialists.find(spec => spec.Id === specialistId);
+        const specialistId = event.currentTarget.dataset.specialistId;
         this.specialists = this.specialists.filter(spec => spec.contactId !== specialistId);
-        if (specialistData) {
-            this.specialistOptions = [
-                ...this.specialistOptions,
-                {
-                    label: specialistData.Name,
-                    value: specialistData.Id,
-                    email: specialistData.Email,
-                    department: specialistData.Department,
-                    accountName: specialistData.Account?.Name || '',
-                    type: specialistData.Type__c
-                }
-            ].sort((a, b) => a.label.localeCompare(b.label));
-        }
         this.updateSpecialistsView();
+        this.updateSpecialistOptions();
         this.clearSpecialistSelection();
         this.showToast('Success', 'Specialist removed successfully', 'success');
     }
@@ -455,85 +465,62 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
         this.hasSpecialistsAssigned = this.specialists.length > 0;
     }
 
-    saveTraining() {
+    async saveTraining() {
         if (!this.validateForm()) return;
 
         this.isLoading = true;
-        const trainingDetails = {
-            Shipping_City__c: this.locationCity,
-            Shipping_State__c: this.selectedState,
-            Shipping_Postal_Code__c: this.locationZipCode,
-            Street__c: this.trainingLocationAddress,
-            cc_Training_Description__c: this.trainingNotes,
-            Course_Initial_Training_Time__c: this.courseActualDuration ? this.parseTimeToMinutes(this.courseActualDuration) : null,
-            Actual_Initial_Training_Time__c: this.courseActualDuration ? this.parseTimeToMinutes(this.courseActualDuration) : null
-        };
-
-        const trainers = [];
-        if (this.primaryFacultyContactId) trainers.push({ Id: this.primaryFacultyContactId });
-        if (this.secondaryFacultyContactId) trainers.push({ Id: this.secondaryFacultyContactId });
-
-        const competenciesWrapper = this.courseData.map((comp, index) => ({
-            index: index,
-            courseId: this.selectedCourseType,
-            isAllCompetencyTaught: this.courseData.every(c => c.Taught__c),
-            actualInitialTime: this.parseTimeToMinutes(this.courseActualDuration) || 0,
-            actualRecertTime: 0,
-            competencyIds: [comp.Id],
-            trainingCompetencies: [{
-                Id: comp.Id,
-                Name: comp.Name,
-                Course_Competency__c: comp.Id,
-                Taught__c: comp.Taught__c,
-                Initial_Time__c: this.parseTimeToMinutes(comp.Initial_Time__c),
-                Recert_Time__c: this.parseTimeToMinutes(comp.Recert_Time__c)
-            }]
-        }));
-
-        saveTraining({
-            contactId: this.contactId,
-            coursesList: [{ Id: this.selectedCourseType }],
-            trainerList: trainers,
-            trainingDetails: trainingDetails,
-            trainingId: '',
-            organizationId: this.selectedSubOrganization,
-            trainingType: 'Organization Specialist Training',
-            startDate: this.trainingStartDate,
-            endDate: this.trainingEndDate,
-            selectedCourseIds: [this.selectedCourseType],
-            selectedTrainersIds: [this.primaryFacultyContactId, this.secondaryFacultyContactId].filter(id => id),
-            selectedSpecialistIds: this.specialists.map(spec => spec.contactId),
-            competenciesWrapperStr: JSON.stringify(competenciesWrapper),
-            isCollaborative: this.selectedAuthorization === 'Collaborative',
-            authorizationType: this.selectedAuthorization === 'None' ? null : this.selectedAuthorization,
-            specialistToBeInserted: [],
-            termId: this.trainingData.termPlanList?.[0]?.Id || null,
-            certificationType: this.selectedCertificationType
-        })
-            .then(result => {
-                const errors = result.filter(err => err.message);
-                if (errors.length > 0) {
-                    this.handleError('Error saving training', new Error(errors[0].message));
-                } else {
-                    this.showToast('Success', 'Training saved successfully', 'success');
-                    this.navigateToTrainings();
-                }
-            })
-            .catch(error => {
-                this.handleError('Error saving training', error);
-            })
-            .finally(() => {
-                this.isLoading = false;
+        try {
+            const trainingDetails = this.buildTrainingDetails();
+            const competenciesWrapper = this.buildCompetenciesWrapper();
+            const result = await saveTraining({
+                contactId: this.contactId,
+                coursesList: this.selectedCourseType ? [{ Id: this.selectedCourseType, Name: this.courseOptions.find(opt => opt.value === this.selectedCourseType)?.label || '' }] : [],
+                trainerList: this.getSelectedTrainers(),
+                trainingDetails: trainingDetails,
+                trainingId: '',
+                organizationId: this.selectedSubOrganization,
+                trainingType: 'Organization Specialist Training',
+                startDate: this.trainingStartDate,
+                endDate: this.trainingEndDate,
+                selectedCourseIds: this.selectedCourseType ? [this.selectedCourseType] : [],
+                selectedTrainersIds: [this.primaryFacultyContactId, this.secondaryFacultyContactId].filter(id => id),
+                selectedSpecialistIds: this.specialists.map(spec => spec.contactId),
+                competenciesWrapperStr: JSON.stringify(competenciesWrapper),
+                isCollaborative: this.selectedAuthorization === 'Collaborative',
+                authorizationType: this.selectedAuthorization || null,
+                specialistToBeInserted: this.getSpecialistsForInsert(),
+                termId: this.trainingData.termPlanList?.[0]?.Id || null,
+                certificationType: this.selectedCertificationType
             });
+
+            const errors = result.filter(err => err.message);
+            if (errors.length > 0) {
+                errors.forEach(err => this.showToast('Error', err.message, 'error'));
+            } else if (result[0]?.trainingId) {
+                this.showToast('Success', 'Training saved successfully', 'success');
+                this[NavigationMixin.Navigate]({
+                    type: 'standard__recordPage',
+                    attributes: {
+                        recordId: result[0].trainingId,
+                        objectApiName: 'hed__Course_Offering__c',
+                        actionName: 'view'
+                    }
+                });
+            }
+        } catch (error) {
+            this.handleError('Error saving training', error);
+        } finally {
+            this.isLoading = false;
+        }
     }
 
-    gradeAndFinalize() {
+    async gradeAndFinalize() {
         if (!this.validateForm()) return;
         if (!this.specialists.length) {
             this.showToast('Error', 'Please add at least one specialist before finalizing', 'error');
             return;
         }
-        this.saveTraining(); // Extend for grading logic if needed
+        await this.saveTraining(); // Extend for grading logic if needed
     }
 
     validateForm() {
@@ -547,7 +534,8 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
             { field: this.locationCity, name: 'City' },
             { field: this.selectedState, name: 'State/Province' },
             { field: this.primaryFacultyContactId, name: 'Primary Faculty' },
-            { field: this.selectedCourseType, name: 'Course' }
+            { field: this.selectedCourseType, name: 'Course' },
+            { field: this.specialists.length, name: 'At least one specialist' }
         ];
 
         for (const { field, name } of requiredFields) {
@@ -556,7 +544,7 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
                 return false;
             }
         }
-        return true;
+        return this.validateDateRange();
     }
 
     validateDateRange() {
@@ -572,17 +560,79 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
         return true;
     }
 
+    buildTrainingDetails() {
+        const timeInMinutes = this.parseTimeToMinutes(this.courseActualDuration);
+        const trainingDetails = {
+            Shipping_City__c: this.locationCity,
+            Shipping_State__c: this.selectedState,
+            Shipping_Postal_Code__c: this.locationZipCode,
+            Street__c: this.trainingLocationAddress,
+            cc_Training_Description__c: this.trainingNotes
+        };
+        if (this.selectedCertificationType === 'Initial') {
+            trainingDetails.Course_Initial_Training_Time__c = timeInMinutes;
+            trainingDetails.Actual_Initial_Training_Time__c = timeInMinutes;
+        } else {
+            trainingDetails.Course_Recert_Training_Time__c = timeInMinutes;
+            trainingDetails.Actual_Recert_Training_Time__c = timeInMinutes;
+        }
+        return trainingDetails;
+    }
+
+    buildCompetenciesWrapper() {
+        return this.courseData.map((comp, index) => ({
+            index: index,
+            courseId: this.selectedCourseType,
+            isAllCompetencyTaught: this.courseData.every(c => c.taught),
+            actualInitialTime: this.selectedCertificationType === 'Initial' ? this.parseTimeToMinutes(this.courseActualDuration) || 0 : 0,
+            actualRecertTime: this.selectedCertificationType !== 'Initial' ? this.parseTimeToMinutes(this.courseActualDuration) || 0 : 0,
+            competencyIds: [comp.id],
+            trainingCompetencies: [{
+                Course_Competency__c: comp.id,
+                Name: comp.name,
+                Chapter_Name__c: comp.chapter,
+                Initial_Time__c: comp.initialMinutes,
+                Recert_Time__c: comp.recertMinutes,
+                Taught__c: comp.taught
+            }]
+        }));
+    }
+
+    getSelectedTrainers() {
+        const trainers = [];
+        if (this.primaryFacultyContactId) {
+            const primary = this.trainingData.trainers.find(t => t.Id === this.primaryFacultyContactId);
+            if (primary) trainers.push({ Id: primary.Id, Name: primary.Name });
+        }
+        if (this.secondaryFacultyContactId) {
+            const secondary = this.trainingData.trainers.find(t => t.Id === this.secondaryFacultyContactId);
+            if (secondary) trainers.push({ Id: secondary.Id, Name: secondary.Name });
+        }
+        return trainers;
+    }
+
+    getSpecialistsForInsert() {
+        return this.specialists.map(s => ({
+            Id: s.contactId,
+            FirstName: s.firstName,
+            LastName: s.lastName,
+            Email: s.specialistEmail,
+            Department: s.department,
+            AccountId: this.subOrganizationOptions.find(opt => opt.label === s.accountName)?.value || this.selectedSubOrganization
+        }));
+    }
+
     formatTime(minutes) {
-        if (!minutes) return '';
+        if (!minutes) return '0h 0m';
         const hours = Math.floor(minutes / 60);
-        const mins = Math.round(minutes % 60);
-        return `${hours}:${mins.toString().padStart(2, '0')}`;
+        const mins = minutes % 60;
+        return `${hours}h ${mins}m`;
     }
 
     parseTimeToMinutes(timeStr) {
-        if (!timeStr) return null;
+        if (!timeStr) return 0;
         const [hours, minutes] = timeStr.split(':').map(Number);
-        return hours * 60 + minutes;
+        return (hours || 0) * 60 + (minutes || 0);
     }
 
     showToast(title, message, variant) {
