@@ -54,7 +54,7 @@
                                         disabled
                                     ></lightning-input>
                                 </div>
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-12">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_2-of-12">
                                     <lightning-combobox
                                         label="Finalized"
                                         value={filters.finalized}
@@ -105,22 +105,24 @@
                                         </lightning-layout-item>
                                     </lightning-layout>
                                 </div>
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_2-of-12">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-12">
                                     <div class="slds-m-top_large slds-align_absolute-center">
                                         <lightning-button
-                                            variant="base"
+                                            variant="neutral"
                                             label="Reset"
+                                            icon-name="utility:clear"
                                             title="Reset all filters"
-                                            class="slds-m-right_small"
+                                            stretch
+                                            class="slds-align_absolute-center"
                                             onclick={handleResetSearch}
                                         ></lightning-button>
-                                        <lightning-button
+                                        <!-- <lightning-button
                                             variant="brand"
                                             label="Search"
                                             title="Apply filters"
                                             icon-name="utility:search"
                                             onclick={handleSearch}
-                                        ></lightning-button>
+                                        ></lightning-button> -->
                                     </div>
                                 </div>
                             </div>
@@ -283,7 +285,7 @@
                                                                 title="View Certificate"
                                                                 size="x-small"
                                                                 data-id={training.Id}
-                                                                disabled={isViewCertificateActionDisabled}
+                                                                disabled={training.disableUnFinalized}
                                                                 onclick={handleViewCertificateAction}>
                                                             </lightning-button-icon>
                                                             <lightning-button-icon 
@@ -293,14 +295,14 @@
                                                                 title="Send Email"
                                                                 size="x-small"
                                                                 data-id={training.Id}
-                                                                disabled={isEmailActionDisabled}
+                                                                disabled={training.disableUnFinalized}
                                                                 onclick={handleEmailAction}>
                                                             </lightning-button-icon>
                                                             <lightning-button-icon 
                                                                 icon-name="utility:print"
                                                                 variant="container"
                                                                 alternative-text="Print"
-                                                                title="Print Certificate"
+                                                                title="Print Training Information"
                                                                 size="x-small"
                                                                 data-id={training.Id}
                                                                 disabled={isPrintActionDisabled}
@@ -323,7 +325,7 @@
                                                                 title="Edit Record"
                                                                 size="x-small"
                                                                 data-id={training.Id}
-                                                                disabled={isEditActionDisabled}
+                                                                disabled={training.Finalized__c}
                                                                 onclick={handleEditAction}>
                                                             </lightning-button-icon>
                                                         </div>

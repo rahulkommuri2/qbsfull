@@ -36,7 +36,6 @@ export default class TcTrainingListView extends NavigationMixin(
   wiredUser({ error, data }) {
     if (data) {
       this.contactId = data.fields.ContactId.value || "";
-      this.contactId = "003VE00000pefPNYAY"; // Hardcoded for testing
       this.accountId = data.fields.AccountId.value || "";
     } else if (error) {
       console.error("Error loading user data:", error);
@@ -136,7 +135,7 @@ export default class TcTrainingListView extends NavigationMixin(
       this.trainings = data.trainings || [];
       this.totalRecords = data.totalRecords || 0;
       this.organizationName = data.organizationName || "";
-
+      console.log("Wired trainings:", JSON.stringify(this.trainings));
       if (data.courses) {
         this.courseOptions = [
           { label: "All Courses", value: "" },
@@ -179,6 +178,7 @@ export default class TcTrainingListView extends NavigationMixin(
           : "",
         primaryTrainerId: training.hed__Faculty__c || "",
         finalizedStatus: training.Finalized__c ? "Yes" : "No",
+        disableUnFinalized: !training.Finalized__c,
         finalizedClass: training.Finalized__c
           ? "status-finalized"
           : "status-not-finalized",
