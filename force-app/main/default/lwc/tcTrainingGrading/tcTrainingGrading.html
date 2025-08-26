@@ -149,63 +149,63 @@
                 </template>
 
                 <!-- Content Section -->
-                <lightning-layout-item size="12" class="slds-m-bottom_medium">
+                <lightning-layout-item size="12" class="slds-m-bottom_xx-small">
                     <lightning-layout vertical-align="start" multiple-rows="true">
                         <!-- Description Section -->
                         <template if:false={isMobileView}>
-                            <lightning-layout-item size="12" large-device-size="6" small-device-size="12" medium-device-size="6" class="slds-m-bottom_medium">
+                            <lightning-layout-item size="12" large-device-size="8" small-device-size="12" medium-device-size="6" class="slds-m-bottom_medium">
                                 <div class="">
                                     <div class="">
                                         <header class="slds-media slds-media_center slds-has-flexi-truncate">
                                             <div class="slds-media__body">
                                                 <h2 class="slds-card__header-title">
-                                                    <span class="slds-text-heading_small">Key for scoring an individual competency:</span>
+                                                    <span class="slds-text-heading_small slds-p-left_small">Key for scoring an individual competency:</span>
                                                 </h2>
                                             </div>
                                         </header>
                                     </div>
                                     <div class="slds-card__body slds-card__body_inner">
-                                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                                        <p class="slds-text-body_regular slds-m-bottom_small">
                                             Edit grade and competency values for each participant, if applicable, then finalize the training.
                                         </p>
                                         <div class="slds-grid slds-wrap slds-gutters_small">
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_success slds-text-heading_x-small">P</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn P"> P</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with and Passed the competency</span>
+                                                        <span class="slds-text-body_small"> - Presented with and Passed the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_error slds-text-heading_x-small">F</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn NC"> NC</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with and Failed the competency</span>
+                                                        <span class="slds-text-body_small"> - Presented with but did Not Complete the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_warning slds-text-heading_x-small">NC</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn NP"> NP</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with but did Not Complete the competency</span>
+                                                        <span class="slds-text-body_small"> - Was Not Presented with the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_info slds-text-heading_x-small">I</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn NA"> NA</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with and Incomplete the competency</span>
+                                                        <span class="slds-text-body_small"> - Did Not Attend the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -216,7 +216,7 @@
                         </template>
 
                         <!-- Finalization Section -->
-                        <lightning-layout-item size="12" large-device-size="6" small-device-size="12" medium-device-size="6" class="slds-m-bottom_medium">
+                        <lightning-layout-item size="12" large-device-size="4" small-device-size="12" medium-device-size="6" class="slds-m-bottom_medium">
                             <div class="">
                                 <div class="slds-text-align_center slds-p-around_large">
                                     <div class="slds-m-bottom_medium">
@@ -236,11 +236,11 @@
                                         <template if:false={isFinalized}>
                                             <div class="slds-m-bottom_small">
                                                 <div class="slds-align_absolute-center">
-                                                    <lightning-icon icon-name="utility:info" variant="warning" size="large" class="slds-m-bottom_x-small"></lightning-icon>
+                                                    <lightning-icon icon-name="utility:info" variant="info" size="large" class="slds-m-bottom_x-small"></lightning-icon>
                                                 </div>
                                             </div>
                                             <div class="slds-m-bottom_small">
-                                                <lightning-badge label="Not Finalized" class="slds-badge_large slds-theme_warning"></lightning-badge>
+                                                <lightning-badge label="Not Finalized" class="slds-badge_large slds-theme_info"></lightning-badge>
                                             </div>
                                             <p class="slds-text-body_small slds-text-color_weak">
                                                 Start Date: {formattedStartDate}
@@ -249,13 +249,13 @@
                                     </div>
                                     <div class="slds-grid slds-wrap slds-m-top_medium slds-gutters_small">
                                         <div class="slds-col slds-size_1-of-2 slds-p-horizontal_x-small">
-                                            <div class="slds-box slds-box_xx-small slds-theme_default">
+                                            <div class="slds-border_bottom slds-theme_default">
                                                 <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">Actual Time (min)</p>
                                                 <p class="slds-text-heading_medium slds-text-color_success">{actualTime}</p>
                                             </div>
                                         </div>
                                         <div class="slds-col slds-size_1-of-2 slds-p-horizontal_x-small">
-                                            <div class="slds-box slds-box_xx-small slds-theme_default">
+                                            <div class="slds-border_bottom slds-theme_default">
                                                 <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">Minimum Time (min)</p>
                                                 <p class="slds-text-heading_medium">{minimumTime}</p>
                                             </div>
@@ -278,47 +278,47 @@
                                         </header>
                                     </div>
                                     <div class="slds-card__body slds-card__body_inner">
-                                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                                        <p class="slds-text-body_regular slds-m-bottom_small">
                                             Edit grade and competency values for each participant, if applicable, then finalize the training.
                                         </p>
                                         <div class="slds-grid slds-wrap slds-gutters_small">
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_success slds-text-heading_x-small">P</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn P"> P</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with and Passed the competency</span>
+                                                        <span class="slds-text-body_small"> - Presented with and Passed the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_error slds-text-heading_x-small">F</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn NC"> NC</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with and Failed the competency</span>
+                                                        <span class="slds-text-body_small"> - Presented with but did Not Complete the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_warning slds-text-heading_x-small">NC</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn NP"> NP</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with but did Not Complete the competency</span>
+                                                        <span class="slds-text-body_small"> - Was Not Presented with the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
                                                 <div class="slds-media slds-media_small slds-media_center">
-                                                    <div class="slds-media__figure">
-                                                        <span class="slds-badge slds-badge_info slds-text-heading_x-small">I</span>
+                                                    <div style="display:flex;justify-content:center;">
+                                                        <button class="status-btn NA"> NA</button>
                                                     </div>
                                                     <div class="slds-media__body">
-                                                        <span class="slds-text-body_small">Presented with and Incomplete the competency</span>
+                                                        <span class="slds-text-body_small"> - Did Not Attend the competency.</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -332,9 +332,9 @@
                 </lightning-layout-item>
 
                 <!-- Grading Table Section -->
-                <lightning-layout-item size="12" class="slds-m-top_medium">
-                    <div class="">
-                        <div class="">
+                <lightning-layout-item size="12" class="slds-m-bottom_medium">
+                    <div>
+                        <div>
                             <header class="slds-media slds-media_center slds-has-flexi-truncate">
                                 <div class="slds-media__body">
                                     <h2 class="slds-card__header-title">
@@ -344,18 +344,49 @@
                             </header>
                         </div>
                         <div class="slds-card__body slds-card__body_inner">
-                            <div class="slds-scrollable_x" style="height: 45vh;">
-                                <div class="slds-m-bottom_medium slds-box" style="height: 45vh;">
-                                    <lightning-datatable
-                                        key-field="id"
-                                        data={tableData}
-                                        columns={columns}
-                                        hide-checkbox-column
-                                        onrowaction={handleRowAction}
-                                    >
-                                    </lightning-datatable>
-                                </div>
+                            <!-- Scrollable Table Container -->
+                            <div style="overflow-x:auto; overflow-y:auto; max-height:400px;">
+                                <table class="slds-table slds-table_cell-buffer slds-table_bordered" style="min-width:600px;">
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                            <th scope="col" class="slds-text-title_caps">
+                                                <div class="slds-truncate" title="Competency">Competency</div>
+                                            </th>
+                                            <template for:each={specialists} for:item="specialist">
+                                                <th key={specialist.id} scope="col" class="slds-text-title_caps slds-text-align_center">
+                                                    <div class="slds-wrap" style="word-break:break-word;white-space:normal;" title={specialist.name}>
+                                                        {specialist.name}
+                                                    </div>
+                                                </th>
+                                            </template>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template for:each={tableData} for:item="row">
+                                            <tr key={row.id} class="slds-hint-parent">
+                                                <td data-label="Competency" class="slds-cell-wrap">
+                                                    <div class="slds-truncate" title={row.name}>{row.name}</div>
+                                                </td>
+                                                <template for:each={row.gradeButtons} for:item="gradeBtn">
+                                                    <td key={gradeBtn.specialistId} data-label={gradeBtn.specialistName} class="slds-text-align_center">
+                                                        <div style="display:flex;justify-content:center;">
+                                                            <button
+                                                                class={gradeBtn.cssClass}
+                                                                onclick={handleGradeClick}
+                                                                data-row-id={row.id}
+                                                                data-specialist-id={gradeBtn.specialistId}
+                                                                disabled={isFinalized}>
+                                                                {gradeBtn.grade}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </template>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
                             </div>
+                            <!-- Responsive SLDS Grading Table End -->
                         </div>
                     </div>
                 </lightning-layout-item>
