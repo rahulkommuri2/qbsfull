@@ -38,7 +38,7 @@ export default class TcTrainingListView extends NavigationMixin(
       this.contactId = data.fields.ContactId.value || "";
       this.accountId = data.fields.AccountId.value || "";
     } else if (error) {
-      console.error("Error loading user data:", error);
+      console.error("Error loading user data:", JSON.stringify(error));
       this.showToast(
         "Error",
         error.body?.message || "Failed to load user data",
@@ -57,7 +57,7 @@ export default class TcTrainingListView extends NavigationMixin(
   };
 
   // UI State
-  @track isFilterOpen = false;
+  @track isFilterOpen = true;
   currentPage = 1;
   pageSize = 10;
 
@@ -135,7 +135,6 @@ export default class TcTrainingListView extends NavigationMixin(
       this.trainings = data.trainings || [];
       this.totalRecords = data.totalRecords || 0;
       this.organizationName = data.organizationName || "";
-      console.log("Wired trainings:", JSON.stringify(this.trainings));
       if (data.courses) {
         this.courseOptions = [
           { label: "All Courses", value: "" },
@@ -281,6 +280,7 @@ export default class TcTrainingListView extends NavigationMixin(
   }
 
   async handleViewCertificateAction(event) {
+    console.log("event", event);
     const trainingId = event.currentTarget.dataset.id;
     // Find the training record to get the course name
     const training = this.formattedTrainings.find((t) => t.Id === trainingId);
@@ -331,10 +331,13 @@ export default class TcTrainingListView extends NavigationMixin(
   // Add this method to handle the view certificate action for a specialist row
   async handleViewCertificateRow(event) {
     const regId = event.currentTarget.dataset.id;
-    if (!regId) return;
+    if (!regId) {
+        this.showToast("Error", "Register No (regId) missing for certificate view.", "error");
+        return;
+    }
     this.isLoading = true;
     try {
-        // import generateCertificate from '@salesforce/apex/tcCertificateController.generateCertificate';
+        // Call generateCertificate with register id (not training id)
         const result = await generateCertificate({ trainingId: regId });
         if (
             result &&
@@ -508,25 +511,23 @@ export default class TcTrainingListView extends NavigationMixin(
   // Fix: Use correct parameter names for Apex method call
   async handleEmailAction(event) {
     const trainingId = event.currentTarget.dataset.id;
+    console.log('Selected training ID:', trainingId);
     this.currentTrainingId = trainingId;
     this.isLoading = true;
     try {
         // Fetch specialist data for the selected training using the correct Apex method
-        const specialists = await getSpecialistsForTraining({ trainingId, conId: this.contactId });
-        console.log('Specialists:', specialists);
-
+        const specialists = await getSpecialistsForTraining({ trainingId });
+        console.log('Fetched specialists:', specialists);
         // Map the returned specialist data for modal display
         this.emailModalSpecialists = (specialists || []).map(spec => ({
-            regId: spec.GradeId, // Register No
-            email: spec.SpecialistEmail,
-            name: spec.name,
-            certification: spec.CertificationName || '',
-            overallGrade: spec.gradeName || spec.grade || '', // Use gradeName for overall grade
-            restrictions: spec.restrictions || '',
+            regId: spec.Name, // Register No
+            email: spec.Contacts_Email__c,
+            name: spec.Registration_Contact__r.Name,
+            certification: spec.Certification_Type__c || '',
+            overallGrade: spec.Status__c || '',
+            Id: trainingId,
             checked: false
         }));
-        console.log('emailModalSpecialists:', this.emailModalSpecialists);
-
         this.selectedSpecialistIds = new Set();
         this.ccEmailValue = '';
         this.isEmailModalOpen = true;

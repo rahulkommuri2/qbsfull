@@ -9,9 +9,15 @@ import initializeTrainingData from '@salesforce/apex/tcTrainingController.initia
 import createSpecialist from '@salesforce/apex/tcTrainingController.createSpecialist';
 import saveTraining from '@salesforce/apex/tcTrainingController.saveTraining';
 
+import getStatePicklistValues from '@salesforce/apex/tcTrainingController.getPicklistValues';
+import getCertificationTypePicklistValues from '@salesforce/apex/tcTrainingController.getPicklistValues';
+import getAuthorizationPicklistValues from '@salesforce/apex/tcTrainingController.getPicklistValues';
+
 export default class TcNewTraining extends NavigationMixin(LightningElement) {
+
     @track isLoading = false;
     @track errorMessage = '';
+    @track hasError = false;
     @track editingDisabled = false;
     @track contactId = '';
     @track isMobileView = formFactorPropertyName === 'Small';
@@ -57,26 +63,7 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     @track trainerOptions = [];
     @track secondaryTrainerOptions = [];
     @track specialistOptions = [];
-    @track stateOptions = [
-        { label: 'Select State/Province', value: '' },
-        { label: 'Alabama', value: 'AL' }, { label: 'Alaska', value: 'AK' }, { label: 'Arizona', value: 'AZ' },
-        { label: 'Arkansas', value: 'AR' }, { label: 'California', value: 'CA' }, { label: 'Colorado', value: 'CO' },
-        { label: 'Connecticut', value: 'CT' }, { label: 'Delaware', value: 'DE' }, { label: 'Florida', value: 'FL' },
-        { label: 'Georgia', value: 'GA' }, { label: 'Hawaii', value: 'HI' }, { label: 'Idaho', value: 'ID' },
-        { label: 'Illinois', value: 'IL' }, { label: 'Indiana', value: 'IN' }, { label: 'Iowa', value: 'IA' },
-        { label: 'Kansas', value: 'KS' }, { label: 'Kentucky', value: 'KY' }, { label: 'Louisiana', value: 'LA' },
-        { label: 'Maine', value: 'ME' }, { label: 'Maryland', value: 'MD' }, { label: 'Massachusetts', value: 'MA' },
-        { label: 'Michigan', value: 'MI' }, { label: 'Minnesota', value: 'MN' }, { label: 'Mississippi', value: 'MS' },
-        { label: 'Missouri', value: 'MO' }, { label: 'Montana', value: 'MT' }, { label: 'Nebraska', value: 'NE' },
-        { label: 'Nevada', value: 'NV' }, { label: 'New Hampshire', value: 'NH' }, { label: 'New Jersey', value: 'NJ' },
-        { label: 'New Mexico', value: 'NM' }, { label: 'New York', value: 'NY' }, { label: 'North Carolina', value: 'NC' },
-        { label: 'North Dakota', value: 'ND' }, { label: 'Ohio', value: 'OH' }, { label: 'Oklahoma', value: 'OK' },
-        { label: 'Oregon', value: 'OR' }, { label: 'Pennsylvania', value: 'PA' }, { label: 'Rhode Island', value: 'RI' },
-        { label: 'South Carolina', value: 'SC' }, { label: 'South Dakota', value: 'SD' }, { label: 'Tennessee', value: 'TN' },
-        { label: 'Texas', value: 'TX' }, { label: 'Utah', value: 'UT' }, { label: 'Vermont', value: 'VT' },
-        { label: 'Virginia', value: 'VA' }, { label: 'Washington', value: 'WA' }, { label: 'West Virginia', value: 'WV' },
-        { label: 'Wisconsin', value: 'WI' }, { label: 'Wyoming', value: 'WY' }
-    ];
+    @track stateOptions = [];
 
     courseColumns = [
         { label: 'Competency', fieldName: 'name', type: 'text' },
@@ -111,14 +98,19 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
                 this.loadInitialData();
             } else {
                 this.handleError('User does not have a ContactId associated', new Error('ContactId missing'));
+                this.hasError = true;
             }
         } else if (error) {
             this.handleError('Error fetching user record', error);
+            this.hasError = true;
         }
     }
 
     connectedCallback() {
         window.addEventListener('resize', this.handleResize.bind(this));
+        this.fetchStatePicklistValues();
+        this.fetchCertificationTypePicklistValues();
+        this.fetchAuthorizationPicklistValues();
     }
 
     disconnectedCallback() {
@@ -127,6 +119,36 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
 
     handleResize() {
         this.isMobileView = window.innerWidth < 768;
+    }
+
+    fetchStatePicklistValues() {
+        getStatePicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'cc_State_Province__c' })
+            .then(result => {
+                this.stateOptions = result.map(val => ({ label: val, value: val }));
+            })
+            .catch(error => {
+                console.error('Error fetching state picklist values', JSON.stringify(error));
+            });
+    }
+
+    fetchCertificationTypePicklistValues() {
+        getCertificationTypePicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'Certification_Type__c' })
+            .then(result => {
+                this.certificationTypeOptions = result.map(val => ({ label: val, value: val }));
+            })
+            .catch(error => {
+                console.error('Error fetching certification type picklist values', JSON.stringify(error));
+            });
+    }
+
+    fetchAuthorizationPicklistValues() {
+        getAuthorizationPicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'Training_Authorization__c' })
+            .then(result => {
+                this.authorizationOptions = result.map(val => ({ label: val, value: val }));
+            })
+            .catch(error => {
+                console.error('Error fetching authorization picklist values', JSON.stringify(error));
+            });
     }
 
     loadInitialData() {
@@ -203,7 +225,7 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
                 actionName: 'list'
             },
             state: {
-                c__contactId: this.contactId
+                contactId: this.contactId
             }
         });
     }
@@ -458,14 +480,17 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
 
     clearSpecialistSelection() {
         this.selectedSpecialistContactId = '';
-        this.template.querySelector('lightning-combobox[data-id="specialist"]').value = '';
+        const specialistCombobox = this.template.querySelector('lightning-combobox[data-id="specialist"]');
+        if (specialistCombobox) {
+            specialistCombobox.value = '';
+        }
     }
 
     updateSpecialistsView() {
         this.hasSpecialistsAssigned = this.specialists.length > 0;
     }
 
-    async saveTraining() {
+    async saveTraining(navigateToPageType) {
         if (!this.validateForm()) return;
 
         this.isLoading = true;
@@ -498,14 +523,31 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
                 errors.forEach(err => this.showToast('Error', err.message, 'error'));
             } else if (result[0]?.trainingId) {
                 this.showToast('Success', 'Training saved successfully', 'success');
-                this[NavigationMixin.Navigate]({
-                    type: 'standard__recordPage',
-                    attributes: {
-                        recordId: result[0].trainingId,
-                        objectApiName: 'hed__Course_Offering__c',
-                        actionName: 'view'
-                    }
-                });
+                if (navigateToPageType === 'gradingPage') {
+                    this[NavigationMixin.Navigate]({
+                        type: 'comm__namedPage',
+                        attributes: {
+                            name: 'Training_Grading__c'
+                        },
+                        state: {
+                            contactId: this.contactId,
+                            trainingId: result[0].trainingId
+                        }
+                    });
+                } else if (navigateToPageType === 'recordPage') {
+                    this[NavigationMixin.Navigate]({
+                        type: 'standard__recordPage',
+                        attributes: {
+                            recordId: result[0].trainingId,
+                            objectApiName: 'hed__Course_Offering__c',
+                            actionName: 'view'
+                        },
+                        state: {
+                            contactId: this.contactId,
+                            trainingId: result[0].trainingId
+                        }
+                    });
+                }
             }
         } catch (error) {
             this.handleError('Error saving training', error);
@@ -520,7 +562,11 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
             this.showToast('Error', 'Please add at least one specialist before finalizing', 'error');
             return;
         }
-        await this.saveTraining(); // Extend for grading logic if needed
+        await this.saveTraining('gradingPage');
+    }
+
+    async handleSaveTraining() {
+        await this.saveTraining('recordPage');
     }
 
     validateForm() {
@@ -551,10 +597,15 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
         if (this.trainingStartDate && this.trainingEndDate) {
             const start = new Date(this.trainingStartDate);
             const end = new Date(this.trainingEndDate);
+            const today = new Date();
+            
             if (start > end) {
                 this.showToast('Error', 'End date must be after start date', 'error');
-                this.trainingEndDate = '';
                 return false;
+            }
+            
+            if (end < today) {
+                this.showToast('Warning', 'End date is in the past', 'warning');
             }
         }
         return true;
@@ -640,7 +691,7 @@ export default class TcNewTraining extends NavigationMixin(LightningElement) {
     }
 
     handleError(title, error) {
-        console.error(`${title}:`, error);
+        console.error(`${title}:`, JSON.stringify(error));
         this.errorMessage = error.body?.message || error.message || 'An unexpected error occurred';
         this.showToast(title, this.errorMessage, 'error');
     }

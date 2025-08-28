@@ -6,7 +6,11 @@ import initializeTrainingData from '@salesforce/apex/tcTrainingController.initia
 import createSpecialist from '@salesforce/apex/tcTrainingController.createSpecialist';
 import saveTraining from '@salesforce/apex/tcTrainingController.saveTraining';
 
-export default class tcTrainingDetail extends NavigationMixin(LightningElement) {
+import getStatePicklistValues from '@salesforce/apex/tcTrainingController.getPicklistValues';
+import getCertificationTypePicklistValues from '@salesforce/apex/tcTrainingController.getPicklistValues';
+import getAuthorizationPicklistValues from '@salesforce/apex/tcTrainingController.getPicklistValues';
+
+export default class TcTrainingDetail extends NavigationMixin(LightningElement) {
     @track recordId;
     @track trainingId;
     @track contactId;
@@ -73,18 +77,18 @@ export default class tcTrainingDetail extends NavigationMixin(LightningElement) 
     @track taughtCompetenciesOptions = [];
 
     @wire(CurrentPageReference)
-wiredPageRef(pageRef) {
-    if (pageRef && pageRef.state) {
-        const { trainingId, contactId } = pageRef.state;
-        this.trainingId = trainingId;
-        this.contactId = contactId;
-        if (this.contactId) {
-            this.loadTrainingData().catch(error => {
-                console.error('Error in wired page ref:', error);
-            });
+    wiredPageRef(pageRef) {
+        if (pageRef && pageRef.state) {
+            const { trainingId, contactId } = pageRef.state;
+            this.trainingId = trainingId;
+            this.contactId = contactId;
+            if (this.contactId) {
+                this.loadTrainingData().catch(error => {
+                    console.error('Error in wired page ref:', error);
+                });
+            }
         }
     }
-}
 
     // Computed properties
     get formattedActualTrainingTime() {
@@ -159,9 +163,9 @@ wiredPageRef(pageRef) {
 
     connectedCallback() {
         this.checkMobileView();
-        this.setupStateOptions();
-        this.setupCertificationOptions();
-        this.setupAuthorizationOptions();
+        this.fetchStatePicklistValues();
+        this.fetchCertificationTypePicklistValues();
+        this.fetchAuthorizationPicklistValues();
         this.setupFinalizedOptions();
         this.setupTaughtCompetenciesOptions();
         window.addEventListener('resize', this.handleResize.bind(this));
@@ -199,6 +203,36 @@ wiredPageRef(pageRef) {
         } finally {
             this.isLoading = false;
         }
+    }
+
+    fetchStatePicklistValues() {
+        getStatePicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'cc_State_Province__c' })
+            .then(result => {
+                this.stateOptions = result.map(val => ({ label: val, value: val }));
+            })
+            .catch(error => {
+                console.error('Error fetching state picklist values', JSON.stringify(error));
+            });
+    }
+
+    fetchCertificationTypePicklistValues() {
+        getCertificationTypePicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'Certification_Type__c' })
+            .then(result => {
+                this.certificationTypeOptions = result.map(val => ({ label: val, value: val }));
+            })
+            .catch(error => {
+                console.error('Error fetching certification type picklist values', JSON.stringify(error));
+            });
+    }
+
+    fetchAuthorizationPicklistValues() {
+        getAuthorizationPicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'Training_Authorization__c' })
+            .then(result => {
+                this.authorizationOptions = result.map(val => ({ label: val, value: val }));
+            })
+            .catch(error => {
+                console.error('Error fetching authorization picklist values', JSON.stringify(error));
+            });
     }
 
     populateFormFields() {
@@ -302,79 +336,6 @@ wiredPageRef(pageRef) {
                 }
             });
         }
-    }
-
-    setupStateOptions() {
-        this.stateOptions = [
-            { label: 'Select State/Province', value: '' },
-            { label: 'Alabama', value: 'AL' },
-            { label: 'Alaska', value: 'AK' },
-            { label: 'Arizona', value: 'AZ' },
-            { label: 'Arkansas', value: 'AR' },
-            { label: 'California', value: 'CA' },
-            { label: 'Colorado', value: 'CO' },
-            { label: 'Connecticut', value: 'CT' },
-            { label: 'Delaware', value: 'DE' },
-            { label: 'Florida', value: 'FL' },
-            { label: 'Georgia', value: 'GA' },
-            { label: 'Hawaii', value: 'HI' },
-            { label: 'Idaho', value: 'ID' },
-            { label: 'Illinois', value: 'IL' },
-            { label: 'Indiana', value: 'IN' },
-            { label: 'Iowa', value: 'IA' },
-            { label: 'Kansas', value: 'KS' },
-            { label: 'Kentucky', value: 'KY' },
-            { label: 'Louisiana', value: 'LA' },
-            { label: 'Maine', value: 'ME' },
-            { label: 'Maryland', value: 'MD' },
-            { label: 'Massachusetts', value: 'MA' },
-            { label: 'Michigan', value: 'MI' },
-            { label: 'Minnesota', value: 'MN' },
-            { label: 'Mississippi', value: 'MS' },
-            { label: 'Missouri', value: 'MO' },
-            { label: 'Montana', value: 'MT' },
-            { label: 'Nebraska', value: 'NE' },
-            { label: 'Nevada', value: 'NV' },
-            { label: 'New Hampshire', value: 'NH' },
-            { label: 'New Jersey', value: 'NJ' },
-            { label: 'New Mexico', value: 'NM' },
-            { label: 'New York', value: 'NY' },
-            { label: 'North Carolina', value: 'NC' },
-            { label: 'North Dakota', value: 'ND' },
-            { label: 'Ohio', value: 'OH' },
-            { label: 'Oklahoma', value: 'OK' },
-            { label: 'Oregon', value: 'OR' },
-            { label: 'Pennsylvania', value: 'PA' },
-            { label: 'Rhode Island', value: 'RI' },
-            { label: 'South Carolina', value: 'SC' },
-            { label: 'South Dakota', value: 'SD' },
-            { label: 'Tennessee', value: 'TN' },
-            { label: 'Texas', value: 'TX' },
-            { label: 'Utah', value: 'UT' },
-            { label: 'Vermont', value: 'VT' },
-            { label: 'Virginia', value: 'VA' },
-            { label: 'Washington', value: 'WA' },
-            { label: 'West Virginia', value: 'WV' },
-            { label: 'Wisconsin', value: 'WI' },
-            { label: 'Wyoming', value: 'WY' }
-        ];
-    }
-
-    setupCertificationOptions() {
-        this.certificationTypeOptions = [
-            { label: 'Select Certification Type', value: '' },
-            { label: 'Initial', value: 'Initial' },
-            { label: 'Recertification', value: 'Recertification' }
-        ];
-    }
-
-    setupAuthorizationOptions() {
-        this.authorizationOptions = [
-            { label: 'Select Authorization', value: '' },
-            { label: 'Standard', value: 'Standard' },
-            { label: 'Collaborative', value: 'Collaborative' },
-            { label: 'Third Party', value: 'Third Party' }
-        ];
     }
 
     setupTaughtCompetenciesOptions() {
@@ -489,7 +450,7 @@ wiredPageRef(pageRef) {
                 actionName: 'list'
             },
             state: {
-                c__contactId: this.contactId
+                contactId: this.contactId
             }
         }).catch(error => {
             this.showErrorToast('Navigation Error', 'Failed to navigate to trainings list');
@@ -509,8 +470,8 @@ wiredPageRef(pageRef) {
                 Name: 'Training_Grading__c',
             },
             state: {
-                c__trainingId: this.trainingId,
-                c__contactId: this.contactId
+                trainingId: this.trainingId,
+                contactId: this.contactId
             }
         }).catch(error => {
             this.showErrorToast('Navigation Error', 'Failed to navigate to grading page');
@@ -735,17 +696,91 @@ wiredPageRef(pageRef) {
         return org?.Name || '';
     }
 
+    // FIXED SAVE FUNCTIONALITY
+    async gradeAndFinalize() {
+        if (!this.validateForm()) return;
+        if (!this.specialists.length) {
+            this.showErrorToast('Error', 'Please add at least one specialist before finalizing');
+            return;
+        }
+        
+        try {
+            const result = await this.saveTraining();
+            if (result) {
+                this.navigateToGradingPageWithResult(result);
+            }
+        } catch (error) {
+            this.showErrorToast('Error', error.body?.message || error.message || 'Failed to save training');
+        }
+    }
+
+    async handleSaveTraining() {
+        if (!this.validateForm()) return;
+        
+        try {
+            const result = await this.saveTraining();
+            if (result) {
+                this.navigateToRecordPageWithResult(result);
+            }
+        } catch (error) {
+            this.showErrorToast('Error', error.body?.message || error.message || 'Failed to save training');
+        }
+    }
+
+    validateForm() {
+        const requiredFields = [
+            { value: this.selectedCourseId, name: 'Course' },
+            { value: this.primaryFacultyContactId, name: 'Primary Faculty' },
+            { value: this.trainingStartDate, name: 'Start Date' },
+            { value: this.trainingEndDate, name: 'End Date' },
+            { value: this.selectedSubOrganization, name: 'Sub Organization' },
+            { value: this.selectedCertificationType, name: 'Certification Type' },
+            { value: this.selectedAuthorization, name: 'Authorization' }
+        ];
+
+        for (const field of requiredFields) {
+            if (!field.value) {
+                this.showErrorToast('Validation Error', `${field.name} is required`);
+                return false;
+            }
+        }
+
+        if (new Date(this.trainingEndDate) < new Date(this.trainingStartDate)) {
+            this.showErrorToast('Validation Error', 'End date must be after start date');
+            return false;
+        }
+
+        if (this.specialists.length === 0) {
+            this.showErrorToast('Validation Error', 'At least one specialist is required');
+            return false;
+        }
+
+        return true;
+    }
+
     async saveTraining() {
-        if (!this.validateTrainingData()) {
+        console.log('Starting saveTraining...');
+        console.log('Training ID:', this.trainingId);
+        console.log('Contact ID:', this.contactId);
+
+        if (!this.validateForm()) {
+            this.showErrorToast('Validation Error', 'Please complete all required fields');
             throw new Error('Validation failed');
         }
 
+        this.isLoading = true;
+        
         try {
-            this.isLoading = true;
-            const trainingDetails = this.buildTrainingDetails();
-            const competenciesWrapper = this.buildCompetenciesWrapper();
+            // Process any draft values from the datatable
+            this.processDraftValues();
             
-            const result = await saveTraining({
+            const trainingDetails = this.buildTrainingDetails();
+            console.log('Training details:', JSON.stringify(trainingDetails));
+            
+            const competenciesWrapper = this.buildCompetenciesWrapper();
+            console.log('Competencies wrapper:', JSON.stringify(competenciesWrapper));
+            
+            const saveParams = {
                 contactId: this.contactId,
                 coursesList: this.getSelectedCourses(),
                 trainerList: this.getSelectedTrainers(),
@@ -764,67 +799,95 @@ wiredPageRef(pageRef) {
                 specialistToBeInserted: this.getSpecialistsForInsert(),
                 termId: this.trainingData.termPlanList?.[0]?.Id || '',
                 certificationType: this.selectedCertificationType
-            });
+            };
+            
+            console.log('Save parameters:', JSON.stringify(saveParams));
 
-            if (result && result.length > 0) {
-                let hasErrors = false;
-                let savedSuccessfully = false;
-                
-                result.forEach(res => {
-                    if (res.trainingId) {
-                        this.trainingId = res.trainingId;
-                        this.showSuccessToast('Success', 'Training saved successfully');
-                        this.editingDisabled = true;
-                        savedSuccessfully = true;
-                    } else if (res.message) {
-                        this.showErrorToast('Validation Error', res.message);
-                        hasErrors = true;
-                    }
+            const result = await saveTraining(saveParams);
+            console.log('Save result:', JSON.stringify(result));
+
+            // Handle result
+            const errors = result.filter(item => item.message && !item.trainingId);
+            const successes = result.filter(item => item.trainingId);
+            
+            if (errors.length > 0) {
+                errors.forEach(error => {
+                    this.showErrorToast('Error', error.message);
                 });
-                
-                if (hasErrors) {
-                    throw new Error('Validation errors occurred');
-                }
-                
-                if (savedSuccessfully) {
-                    // Refresh the training data after successful save
-                    await this.loadTrainingData();
-                    return result;
-                }
-            } else {
-                throw new Error('No response received from server');
+                throw new Error('Validation errors occurred during save');
             }
+            
+            if (successes.length > 0) {
+                this.trainingId = successes[0].trainingId;
+                this.editingDisabled = true;
+                this.showSuccessToast('Success', 'Training saved successfully');
+                
+                // Return the result for navigation
+                return successes[0];
+            }
+            
+            throw new Error('No valid response from server');
+            
         } catch (error) {
-            this.showErrorToast('Error saving training', error.body?.message || error.message);
-            console.error('Save error:', error);
-            throw error; // Re-throw to be handled by calling methods
+            console.error('Save error details:', JSON.stringify(error));
+            // Don't show toast if it's a validation error (already shown)
+            if (!error.message.includes('Validation')) {
+                this.showErrorToast('Error', error.body?.message || error.message || 'Failed to save training');
+            }
+            throw error;
         } finally {
             this.isLoading = false;
         }
     }
 
-    validateTrainingData() {
-        if (!this.selectedCourseId) {
-            this.showErrorToast('Validation Error', 'Please select a course');
-            return false;
+    processDraftValues() {
+        if (this.draftValues && this.draftValues.length > 0) {
+            this.draftValues.forEach(draft => {
+                const index = this.courseData.findIndex(item => item.id === draft.id);
+                if (index !== -1) {
+                    this.courseData[index] = { ...this.courseData[index], ...draft };
+                }
+            });
+            this.draftValues = [];
         }
-        if (!this.primaryFacultyContactId) {
-            this.showErrorToast('Validation Error', 'Please select a primary faculty');
-            return false;
+    }
+
+    navigateToGradingPageWithResult(result) {
+        if (!result || !result.trainingId) {
+            this.showErrorToast('Error', 'No training ID available for navigation');
+            return;
         }
-        if (!this.trainingStartDate) {
-            this.showErrorToast('Validation Error', 'Please select a start date');
-            return false;
+        
+        this[NavigationMixin.Navigate]({
+            type: 'comm__namedPage',
+            attributes: {
+                name: 'Training_Grading__c'
+            },
+            state: {
+                contactId: this.contactId,
+                trainingId: result.trainingId
+            }
+        });
+    }
+
+    navigateToRecordPageWithResult(result) {
+        if (!result || !result.trainingId) {
+            this.showErrorToast('Error', 'No training ID available for navigation');
+            return;
         }
-        if (!this.trainingEndDate) {
-            this.showErrorToast('Validation Error', 'Please select an end date');
-            return false;
-        }
-        if (this.trainingEndDate < this.trainingStartDate) {
-            this.showErrorToast('Validation Error', 'End date must be after start date');
-            return false;
-        }
-        return true;
+        
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: result.trainingId,
+                objectApiName: 'hed__Course_Offering__c',
+                actionName: 'view'
+            },
+            state: {
+                contactId: this.contactId,
+                trainingId: result.trainingId
+            }
+        });
     }
 
     buildTrainingDetails() {
@@ -907,41 +970,15 @@ wiredPageRef(pageRef) {
             LastName: s.lastName,
             Email: s.specialistEmail,
             Department: s.department,
-            AccountId: this.getAccountName(s.accountName) ? s.accountName : this.selectedSubOrganization
+            AccountId: this.findAccountIdByName(s.accountName) || this.selectedSubOrganization
         }));
     }
 
-    async gradeAndFinalize() {
-        try {
-            await this.saveTraining();
-            if (this.trainingId) {
-                this.navigateToGradingPage();
-            }
-        } catch (error) {
-            this.showErrorToast('Error', 'Error saving training details');
-            console.error('Grade and finalize error:', error);
-        }
+    findAccountIdByName(accountName) {
+        const org = this.subOrganizationOptions.find(org => org.label === accountName);
+        return org ? org.value : null;
     }
-
-    async handleSaveClick() {
-        try {
-            await this.saveTraining();
-            if (this.trainingId) {
-                this[NavigationMixin.Navigate]({
-                    type: 'standard__recordPage',
-                    attributes: {
-                        recordId: this.trainingId,
-                        objectApiName: 'hed__Course_Offering__c',
-                        actionName: 'view'
-                    }
-                });
-            }
-        } catch (error) {
-            this.showErrorToast('Error', 'Error saving training details');
-            console.error('Save and navigate error:', error);
-        }
-    }
-
+    
     refinalizeTraining() {
         this.navigateToGradingPage();
     }
