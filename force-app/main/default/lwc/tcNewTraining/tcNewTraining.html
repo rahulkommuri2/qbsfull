@@ -76,15 +76,30 @@
                                             class="slds-m-bottom_small"
                                             aria-label="Select Sub Organization"
                                         ></lightning-combobox>
-                                        <lightning-combobox
-                                            label="Certification Type"
-                                            value={selectedCertificationType}
-                                            options={certificationTypeOptions}
-                                            onchange={updateCertificationType}
-                                            disabled={editingDisabled}
-                                            class="slds-m-bottom_small"
-                                            aria-label="Select Certification Type"
-                                        ></lightning-combobox>
+                                        <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
+                                            <lightning-layout-item size="6" class="slds-p-right_small">
+                                                <lightning-combobox
+                                                    label="Certification Type"
+                                                    value={selectedCertificationType}
+                                                    options={certificationTypeOptions}
+                                                    onchange={updateCertificationType}
+                                                    disabled={editingDisabled}
+                                                    class="slds-m-bottom_small"
+                                                    aria-label="Select Certification Type"
+                                                ></lightning-combobox>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="6" class="slds-p-left_small">
+                                                <lightning-combobox
+                                                    label="Authorization"
+                                                    value={selectedAuthorization}
+                                                    options={authorizationOptions}
+                                                    onchange={updateAuthorization}
+                                                    disabled={editingDisabled}
+                                                    class="slds-m-bottom_small"
+                                                    aria-label="Select Authorization Type"
+                                                ></lightning-combobox>
+                                            </lightning-layout-item>
+                                        </lightning-layout>
                                         <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
                                             <lightning-layout-item size="6" class="slds-p-right_small">
                                                 <lightning-input
@@ -107,15 +122,7 @@
                                                 ></lightning-input>
                                             </lightning-layout-item>
                                         </lightning-layout>
-                                        <lightning-combobox
-                                            label="Authorization"
-                                            value={selectedAuthorization}
-                                            options={authorizationOptions}
-                                            onchange={updateAuthorization}
-                                            disabled={editingDisabled}
-                                            class="slds-m-bottom_small"
-                                            aria-label="Select Authorization Type"
-                                        ></lightning-combobox>
+                                        
                                     </div>
                                 </div>
                             </lightning-layout-item>
@@ -251,11 +258,13 @@
                                                 </div>
                                             </template>
                                             <template if:false={hasCourseCompetencies}>
-                                                <div class="slds-illustration slds-illustration_small">
-                                                    <div class="slds-text-align_center slds-p-around_medium">
-                                                        <lightning-icon icon-name="utility:knowledge_base" size="large" class="slds-text-color_weak"></lightning-icon>
-                                                        <h3 class="slds-text-heading_small slds-m-top_small">No courses available</h3>
-                                                        <p class="slds-text-color_weak">Please select a course type to view available competencies</p>
+                                                <div class="slds-p-top_medium">
+                                                    <div class="slds-illustration slds-illustration_small">
+                                                        <div class="slds-text-align_center slds-p-around_medium slds-box">
+                                                            <lightning-icon icon-name="utility:knowledge_base" size="large" class="slds-text-color_weak"></lightning-icon>
+                                                            <h3 class="slds-text-heading_small slds-m-top_small">No courses available</h3>
+                                                            <p class="slds-text-color_weak">Please select a course type to view available competencies</p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </template>
@@ -492,11 +501,13 @@
                                             </div>
                                         </template>
                                         <template if:false={hasSpecialistsAssigned}>
-                                            <div class="slds-illustration slds-illustration_small">
-                                                <div class="slds-text-align_center slds-p-around_medium">
-                                                    <lightning-icon icon-name="utility:groups" size="large" class="slds-text-color_weak"></lightning-icon>
-                                                    <h3 class="slds-text-heading_small slds-m-top_small">No specialists added</h3>
-                                                    <p class="slds-text-color_weak">Add specialists to this training session</p>
+                                            <div class="slds-p-top_medium">
+                                                <div class="slds-illustration slds-illustration_small">
+                                                    <div class="slds-text-align_center slds-p-around_medium slds-box">
+                                                        <lightning-icon icon-name="utility:groups" size="large" class="slds-text-color_weak"></lightning-icon>
+                                                        <h3 class="slds-text-heading_small slds-m-top_small">No specialists added</h3>
+                                                        <p class="slds-text-color_weak">Add specialists to this training session</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </template>

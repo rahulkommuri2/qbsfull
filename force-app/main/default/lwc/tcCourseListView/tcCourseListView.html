@@ -1,0 +1,184 @@
+<template>
+    <!-- Heading Section -->
+    <div class="slds-card__header slds-grid">
+        <header class="slds-media slds-media_center slds-has-flexi-truncate">
+            <div class="slds-media__body">
+                <h2 class="slds-card__header-title">
+                    <span>Courses</span>
+                </h2>
+                <div class="slds-text-body_regular slds-m-top_xx-small">
+                    Access Specialist Training Materials and Videos
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Main container -->
+    <div class="course-container">
+        <!-- Course Name column header -->
+        <div class="column-header slds-p-horizontal_medium slds-p-vertical_small">
+            <div class="slds-grid slds-grid_align-spread">
+                <div class="slds-col">
+                    <span class="header-text">Course Name</span>
+                    <lightning-button-icon 
+                        icon-name="utility:arrowup" 
+                        variant="bare" 
+                        size="xx-small"
+                        class="slds-m-left_xx-small">
+                    </lightning-button-icon>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course List Section -->
+        <template if:true={courseResources.data}>
+            <div class="course-list">
+                <template for:each={processedCourses} for:item="course">
+                    <div key={course.Id}
+                         class={course.rowClass}>
+                        <!-- Course Name as clickable link -->
+                        <div class="course-name-section slds-p-horizontal_medium slds-p-vertical_small">
+                            <a href="javascript:void(0)" 
+                               class="course-link" 
+                               data-course-id={course.Id}
+                               onclick={handleCourseClick}>
+                                {course.Name}
+                            </a>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- Loading State -->
+        <template if:true={isComponentLoading}>
+            <div class="loading-container slds-p-around_medium slds-text-align_center">
+                <lightning-spinner alternative-text="Loading courses..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Empty State -->
+        <template if:false={hasData}>
+            <template if:false={isComponentLoading}>
+                <div class="empty-state slds-p-around_large slds-text-align_center">
+                    <div class="empty-title">No Courses Found</div>
+                    <div class="empty-subtitle">
+                        There are no course resources available at this time.
+                    </div>
+                </div>
+            </template>
+        </template>
+    </div> <!-- This closes .course-container -->
+
+    <!-- Related Articles Section - OUTSIDE course-container -->
+    <template if:true={hasSelectedCourse}>
+        <div class="related-articles-container">
+            <!-- Section header with gray background -->
+            <div class="related-header slds-p-horizontal_medium slds-p-vertical_small">
+                <span class="section-title">Course Resource Name - {selectedCourseName}</span>
+            </div>
+            
+            <!-- Related articles list -->
+            <div class="related-content">
+                <template if:true={selectedCourseArticles}>
+                    <template for:each={paginatedArticles} for:item="article">
+                        <div key={article.Id} class={article.rowClass}>
+                            <a href="javascript:void(0)"
+                               class="related-link"
+                               data-article-id={article.Id}
+                               data-article-title={article.Title}
+                               onclick={handleArticleClick}>
+                                {article.Title}
+                            </a>
+                        </div>
+                    </template>
+                </template>
+                
+                <!-- Loading state for articles -->
+                <template if:true={isLoadingArticles}>
+                    <div class="loading-articles slds-p-horizontal_large slds-p-vertical_small">
+                        <lightning-spinner size="small" alternative-text="Loading articles..."></lightning-spinner>
+                    </div>
+                </template>
+
+                <!-- No articles message -->
+                <template if:true={showNoArticles}>
+                    <div class="no-articles slds-p-horizontal_large slds-p-vertical_small">
+                        <span class="no-articles-text">No related articles found for this course.</span>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Pagination footer -->
+            <div class="pagination-footer slds-p-horizontal_large slds-p-vertical_small">
+                <div class="pagination-controls">
+                    <div class="items-per-page-section">
+                        <span class="pagination-label">Items per page</span>
+                        <select class="items-dropdown" 
+                                value={itemsPerPage}
+                                onchange={handleItemsPerPageChange}>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="pagination-info">
+                        <span class="pagination-text">{paginationText}</span>
+                    </div>
+                    <div class="pagination-nav flex-container">
+                        <lightning-button-icon
+                            icon-name="utility:chevronleft"
+                            alternative-text="Previous"
+                            title="Previous page"
+                            onclick={handleArticlePrevious}
+                            disabled={disableArticlePrevious}
+                            size="small"
+                            class="slds-m-right_xx-small"
+                        ></lightning-button-icon>
+                        <lightning-button-icon
+                            icon-name="utility:chevronright"
+                            alternative-text="Next"
+                            title="Next page"
+                            onclick={handleArticleNext}
+                            disabled={disableArticleNext}
+                            size="small"
+                        ></lightning-button-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Modal for Knowledge Article Content -->
+    <template if:true={showArticleModal}>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 class="slds-modal__title">{articleTitle}</h2>
+                    <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeArticleModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" size="small"></lightning-icon>
+                    </button>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" style="min-height:200px;">
+                    <template if:true={isLoadingArticleContent}>
+                        <lightning-spinner size="small" alternative-text="Loading content..."></lightning-spinner>
+                    </template>
+                    <template if:false={isLoadingArticleContent}>
+                        <div class="article-rich-content" lwc:dom="manual"></div>
+                    </template>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeArticleModal}>Close</button>
+                    <template if:true={videoUrlInContent}>
+                        <button class="slds-button slds-button_brand slds-m-left_small"
+                                onclick={handleOpenVideoInNewTab}>
+                            Open Video in New Tab
+                        </button>
+                    </template>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

@@ -195,6 +195,10 @@ export default class TcTrainingGrading extends NavigationMixin(LightningElement)
                 objectApiName: "hed__Course_Offering__c",
                 actionName: "view",
             },
+            state: {
+                contactId: this.contactId,
+                trainingId: this.trainingId
+            }
         });
     }
 

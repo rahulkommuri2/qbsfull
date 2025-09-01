@@ -68,6 +68,8 @@ export default class TcTrainingListView extends NavigationMixin(
   @track isReportsActionDisabled = false;
   @track isEmailActionDisabled = false;
 
+  @track pageSizeOptionDisable = true;
+
   // Options
   @track courseOptions = [{ label: "All Courses", value: "" }];
   @track trainerOptions = [{ label: "All Trainers", value: "" }];
@@ -134,6 +136,9 @@ export default class TcTrainingListView extends NavigationMixin(
 
       this.trainings = data.trainings || [];
       this.totalRecords = data.totalRecords || 0;
+      if(this.totalRecords > this.pageSize) {
+        this.pageSizeOptionDisable = false;
+      }
       this.organizationName = data.organizationName || "";
       if (data.courses) {
         this.courseOptions = [
@@ -150,6 +155,7 @@ export default class TcTrainingListView extends NavigationMixin(
       }
 
       if (data.message) {
+        console.log('>> ',data.message);
         this.showToast("Error", data.message, "error");
       }
     } else if (result.error) {
@@ -238,14 +244,10 @@ export default class TcTrainingListView extends NavigationMixin(
     });
   }
 
-  handleCourseClick(event) {
-    const courseId = event.currentTarget.dataset.id;
-    this.navigateToRecord(courseId);
-  }
-
   handleTrainerClick(event) {
     const trainerId = event.currentTarget.dataset.id;
-    this.navigateToRecord(trainerId);
+    this.showToast("Info", `Trainer page is coming soon`, "info");
+    //this.navigateToRecord(trainerId);
   }
 
   async handlePrintAction(event) {
@@ -255,9 +257,6 @@ export default class TcTrainingListView extends NavigationMixin(
     this.isLoading = true;
 
     try {
-      // Import the Apex method at the top of your file:
-      // import getTrainingPrintPageUrl from '@salesforce/apex/tcCertificateController.getTrainingPrintPageUrl';
-
       const pdfUrl = await getTrainingPrintPageUrl({
         trainingId: trainingId,
         contactId: contactId,
@@ -468,17 +467,6 @@ export default class TcTrainingListView extends NavigationMixin(
   handleNext() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
-    }
-  }
-
-  handleRowAction(event) {
-    const action = event.detail.action;
-    const row = event.detail.row;
-    if (action.name === "view") {
-      this.navigateToRecord(row.Id);
-    }
-    if (action.name === "edit") {
-      this.navigateToRecord(row.Id, "edit");
     }
   }
 

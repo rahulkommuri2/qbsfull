@@ -75,6 +75,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     @track courseOptions = [];
     @track specialistOptions = [];
     @track taughtCompetenciesOptions = [];
+    @track taughtAllChecked = false;
 
     @wire(CurrentPageReference)
     wiredPageRef(pageRef) {
@@ -163,9 +164,33 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
 
     connectedCallback() {
         this.checkMobileView();
-        this.fetchStatePicklistValues();
-        this.fetchCertificationTypePicklistValues();
-        this.fetchAuthorizationPicklistValues();
+        // Parallelize picklist fetches (Issue #1)
+        Promise.all([
+            getStatePicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'cc_State_Province__c' })
+                .then(result => {
+                    this.stateOptions = result.map(val => ({ label: val, value: val }));
+                })
+                .catch(error => {
+                    console.error('Error fetching state picklist values:', JSON.stringify(error));
+                }),
+            getCertificationTypePicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'Certification_Type__c' })
+                .then(result => {
+                    this.certificationTypeOptions = result.map(val => ({ label: val, value: val }));
+                })
+                .catch(error => {
+                    console.error('Error fetching certification type picklist values:', JSON.stringify(error));
+                }),
+            getAuthorizationPicklistValues({ objectName: 'hed__Course_Offering__c', fieldName: 'Training_Authorization__c' })
+                .then(result => {
+                    this.authorizationOptions = result.map(val => ({ label: val, value: val }));
+                })
+                .catch(error => {
+                    console.error('Error fetching authorization picklist values:', JSON.stringify(error));
+                })
+        ]).catch(error => {
+            console.error('Error in parallel picklist fetch:', JSON.stringify(error));
+        });
+
         this.setupFinalizedOptions();
         this.setupTaughtCompetenciesOptions();
         window.addEventListener('resize', this.handleResize.bind(this));
@@ -241,7 +266,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         if (training) {
             this.parentOrgName = training.Organization__r?.Name || '';
             this.selectedSubOrganization = training.Organization__c || '';
-            this.selectedCertificationType = training.Certification_Type__c || '';
+            this.selectedCertificationType = training.Certification_Type__c || this.certificationTypeOptions[0]?.value || ''; // Default (Issue #6)
             this.trainingStartDate = training.cc_Course_Start_Date__c || '';
             this.trainingEndDate = training.cc_Course_End_Date__c || '';
             this.selectedAuthorization = training.Training_Authorization__c || '';
@@ -254,7 +279,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             this.primaryFacultyContactId = training.hed__Faculty__c || '';
             this.secondaryFacultyContactId = training.cc_Secondary_Faculty__c || '';
             this.selectedCourseId = training.hed__Course__c || '';
-            this.courseDuration = this.formatTimeForInput(
+            this.courseActualDuration = this.formatTimeForInput(
                 this.selectedCertificationType === 'Initial' ? 
                 training.Actual_Initial_Training_Time__c : 
                 training.Actual_Recert_Training_Time__c
@@ -262,7 +287,9 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         } else {
             this.parentOrgName = this.trainingData.organizationName || '';
             this.selectedSubOrganization = this.trainingData.organizationId || '';
-            this.trainingStartDate = new Date().toISOString().split('T')[0]; // Default for new training
+            this.trainingStartDate = new Date().toISOString().split('T')[0];
+            this.selectedCertificationType = this.certificationTypeOptions[0]?.value || ''; // Default for new mode (Issue #6)
+            this.selectedAuthorization = this.authorizationOptions[0]?.value || ''; // Default for new mode (Issue #6)
         }
 
         this.populateSpecialists();
@@ -270,11 +297,30 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     }
 
     setupOptions() {
-        this.setupSubOrganizationOptions();
-        this.setupTrainerOptions();
-        this.setupCourseOptions();
-        this.setupSpecialistOptions();
+        // Only update if data changed (Issue #8)
+        if (JSON.stringify(this.trainingData.childOrganizations) !== JSON.stringify(this._lastChildOrgs)) {
+            this.setupSubOrganizationOptions();
+            this._lastChildOrgs = JSON.parse(JSON.stringify(this.trainingData.childOrganizations));
+        }
+        if (JSON.stringify(this.trainingData.trainers) !== JSON.stringify(this._lastTrainers)) {
+            this.setupTrainerOptions();
+            this._lastTrainers = JSON.parse(JSON.stringify(this.trainingData.trainers));
+        }
+        if (JSON.stringify(this.trainingData.courses) !== JSON.stringify(this._lastCourses)) {
+            this.setupCourseOptions();
+            this._lastCourses = JSON.parse(JSON.stringify(this.trainingData.courses));
+        }
+        if (JSON.stringify(this.trainingData.specialists) !== JSON.stringify(this._lastSpecialists)) {
+            this.setupSpecialistOptions();
+            this._lastSpecialists = JSON.parse(JSON.stringify(this.trainingData.specialists));
+        }
     }
+
+    // Add cache properties
+    _lastChildOrgs = null;
+    _lastTrainers = null;
+    _lastCourses = null;
+    _lastSpecialists = null;
 
     setupSubOrganizationOptions() {
         this.subOrganizationOptions = [
@@ -403,6 +449,8 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
                     taught: eventCompetency?.Taught__c || false
                 });
             });
+            // Set initial taughtAllChecked state (Issue #4)
+            this.taughtAllChecked = this.courseData.every(c => c.taught);
         }
     }
 
@@ -430,16 +478,18 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     }
 
     handleTaughtCompetenciesChange(event) {
-        this.taughtCompetenciesValue = event.detail.value;
-        if (this.taughtCompetenciesValue === 'true') {
-            this.courseData.forEach(comp => {
-                comp.taught = true;
-            });
-        } else {
-            this.courseData.forEach(comp => {
-                comp.taught = false;
-            });
-        }
+        // Fix to use checked instead of value (Issue #3)
+        const checked = event.target.checked;
+        this.taughtAllChecked = checked;
+        this.courseData = this.courseData.map(comp => ({
+            ...comp,
+            taught: checked
+        }));
+        // Update draft values for save (Issue #3)
+        this.draftValues = this.courseData.map(comp => ({
+            id: comp.id,
+            taught: comp.taught
+        }));
     }
 
     navigateToTrainings() {
@@ -482,6 +532,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     editTraining() {
         this.editingDisabled = false;
         this.showInfoToast('Edit Mode Enabled', 'You can now modify the training details.');
+        this.isMobileMenuVisible = false; // Close menu (Issue #10)
     }
 
     updateSubOrganization(event) {
@@ -490,10 +541,12 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
 
     updateCertificationType(event) {
         this.selectedCertificationType = event.detail.value;
-        this.courseDuration = this.formatTimeForInput(
-            this.selectedCertificationType === 'Initial' ? 
-            this.trainingData.trainingRecord?.Actual_Initial_Training_Time__c :
-            this.trainingData.trainingRecord?.Actual_Recert_Training_Time__c
+        // Update actual time when certification type changes (Issue #2)
+        const training = this.trainingData.trainingRecord;
+        this.courseActualDuration = this.formatTimeForInput(
+            this.selectedCertificationType === 'Initial' ?
+            training?.Actual_Initial_Training_Time__c :
+            training?.Actual_Recert_Training_Time__c
         );
     }
 
@@ -547,20 +600,35 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     updateCourseSelection(event) {
         this.selectedCourseId = event.detail.value;
         this.populateCourseCompetencies();
+        // Update actual time based on selected course and certification type (Issue #2)
+        const training = this.trainingData.trainingRecord;
+        if (training && this.selectedCourseId) {
+            this.courseActualDuration = this.formatTimeForInput(
+                this.selectedCertificationType === 'Initial' ?
+                training.Actual_Initial_Training_Time__c :
+                training.Actual_Recert_Training_Time__c
+            );
+        }
     }
 
     updateCourseDuration(event) {
-        this.courseDuration = event.detail.value;
+        this.courseActualDuration = event.detail.value;
     }
 
-    updateSpecialistSelection(event) {
+    updateSpecialistSelection = this.debounce((event) => {
         const specialistId = event.detail.value;
         if (specialistId) {
+            // Check auth limits before adding (Issue #12)
+            if (this.trainingData.specialistsAllowed && 
+                this.specialists.length >= this.trainingData.specialistsAllowed) {
+                this.showErrorToast('Error', 'Maximum number of specialists reached');
+                return;
+            }
             this.addSpecialistToTable(specialistId);
             this.selectedSpecialistContactId = '';
             this.setupSpecialistOptions();
         }
-    }
+    }, 300);
 
     handleCellChange(event) {
         const draftValues = event.detail.draftValues;
@@ -639,6 +707,20 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             return;
         }
 
+        // Optimistic update (Issue #12)
+        const tempSpecialist = {
+            contactId: null, // Will be set after Apex call
+            name: `${this.newSpecialistFirstName} ${this.newSpecialistLastName}`,
+            firstName: this.newSpecialistFirstName,
+            lastName: this.newSpecialistLastName,
+            accountName: this.getAccountName(this.newSpecialistOrgId),
+            specialistEmail: this.newSpecialistEmail || '',
+            emailLink: this.newSpecialistEmail ? `mailto:${this.newSpecialistEmail}` : '',
+            department: this.newSpecialistDepartment || '',
+            grade: ''
+        };
+        this.specialists = [...this.specialists, tempSpecialist];
+
         try {
             this.isLoading = true;
             const result = await createSpecialist({
@@ -654,26 +736,34 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
 
             if (result.message === 'success' && result.contacts.length > 0) {
                 const specialist = result.contacts[0];
-                const newSpecialist = {
-                    contactId: specialist.Id,
-                    name: `${specialist.FirstName} ${specialist.LastName}`,
-                    firstName: specialist.FirstName,
-                    lastName: specialist.LastName,
-                    accountName: this.getAccountName(this.newSpecialistOrgId),
-                    specialistEmail: specialist.Email || '',
-                    emailLink: specialist.Email ? `mailto:${specialist.Email}` : '',
-                    department: specialist.Department || '',
-                    grade: ''
-                };
-                this.specialists = [...this.specialists, newSpecialist];
+                // Update optimistic entry with real ID
+                this.specialists = this.specialists.map(s => 
+                    s.name === tempSpecialist.name && !s.contactId ? 
+                    {
+                        ...s,
+                        contactId: specialist.Id,
+                        name: `${specialist.FirstName} ${specialist.LastName}`,
+                        firstName: specialist.FirstName,
+                        lastName: specialist.LastName,
+                        specialistEmail: specialist.Email || '',
+                        emailLink: specialist.Email ? `mailto:${specialist.Email}` : '',
+                        department: specialist.Department || ''
+                    } : s
+                );
                 this.handleCloseModal();
                 this.showSuccessToast('Success', 'Specialist added successfully');
                 this.setupSpecialistOptions();
             } else {
+                // Rollback on failure
+                this.specialists = this.specialists.filter(s => s !== tempSpecialist);
                 this.showErrorToast('Error', 'Failed to create specialist');
+                this.setupSpecialistOptions();
             }
         } catch (error) {
+            // Rollback on error (Issue #9, #12)
+            this.specialists = this.specialists.filter(s => s !== tempSpecialist);
             this.showErrorToast('Error creating specialist', error.body?.message || error.message);
+            this.setupSpecialistOptions();
         } finally {
             this.isLoading = false;
         }
@@ -752,6 +842,27 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
 
         if (this.specialists.length === 0) {
             this.showErrorToast('Validation Error', 'At least one specialist is required');
+            return false;
+        }
+
+        // Check for taught competencies (Issue #7)
+        if (!this.courseData.some(c => c.taught)) {
+            this.showErrorToast('Validation Error', 'At least one competency must be taught');
+            return false;
+        }
+
+        // Check actual vs. minimum time (Issue #7)
+        const actualMinutes = this.parseTimeInput(this.courseActualDuration);
+        const minimumMinutes = this.calculateMinimumTime();
+        if (actualMinutes < minimumMinutes) {
+            this.showErrorToast('Validation Error', 'Actual training time must be at least the minimum time');
+            return false;
+        }
+
+        // Check for duplicate trainers (Issue #7)
+        if (this.primaryFacultyContactId && this.secondaryFacultyContactId && 
+            this.primaryFacultyContactId === this.secondaryFacultyContactId) {
+            this.showErrorToast('Validation Error', 'Primary and secondary faculty cannot be the same');
             return false;
         }
 
@@ -840,6 +951,41 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         }
     }
 
+    handleToggleChange(event) {
+        const courseId = event.target.dataset.id;
+        const isChecked = event.target.checked;
+        
+        // Update local data (Issue #3)
+        this.courseData = this.courseData.map(course => {
+            if (course.id === courseId) {
+                return { ...course, taught: isChecked };
+            }
+            return course;
+        });
+
+        // Add to draft values
+        this.addToDraftValues(courseId, 'taught', isChecked);
+
+        // Update taughtAllChecked based on all toggles (Issue #4)
+        this.taughtAllChecked = this.courseData.every(c => c.taught);
+    }
+
+    addToDraftValues(courseId, fieldName, value) {
+        // Remove existing draft for this course if any
+        this.draftValues = this.draftValues.filter(draft => draft.id !== courseId);
+        
+        // Add new draft value
+        this.draftValues.push({
+            id: courseId,
+            [fieldName]: value
+        });
+
+        // Optional: Auto-save or provide save button
+        this.dispatchEvent(new CustomEvent('draftchange', {
+            detail: { draftValues: this.draftValues }
+        }));
+    }
+
     processDraftValues() {
         if (this.draftValues && this.draftValues.length > 0) {
             this.draftValues.forEach(draft => {
@@ -891,7 +1037,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     }
 
     buildTrainingDetails() {
-        const timeInMinutes = this.parseTimeInput(this.courseDuration);
+        const timeInMinutes = this.parseTimeInput(this.courseActualDuration);
         const trainingDetails = {
             Shipping_City__c: this.locationCity,
             Shipping_State__c: this.selectedState,
@@ -911,13 +1057,15 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
 
     buildCompetenciesWrapper() {
         const competencies = [];
+        // Set course-level flag for all competencies taught (Issue #11)
+        const isAllCompetencyTaught = this.courseData.every(c => c.taught);
         this.courseData.forEach((comp, index) => {
             competencies.push({
                 index: index,
-                isAllCompetencyTaught: comp.taught,
+                isAllCompetencyTaught: isAllCompetencyTaught, // Course-level flag (Issue #11)
                 courseId: this.selectedCourseId,
-                actualInitialTime: this.selectedCertificationType === 'Initial' ? this.parseTimeInput(this.courseDuration) : 0,
-                actualRecertTime: this.selectedCertificationType !== 'Initial' ? this.parseTimeInput(this.courseDuration) : 0,
+                actualInitialTime: this.selectedCertificationType === 'Initial' ? this.parseTimeInput(this.courseActualDuration) : 0,
+                actualRecertTime: this.selectedCertificationType !== 'Initial' ? this.parseTimeInput(this.courseActualDuration) : 0,
                 competencyIds: [comp.id],
                 trainingCompetencies: [{
                     Course_Competency__c: comp.id,
@@ -981,18 +1129,22 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     
     refinalizeTraining() {
         this.navigateToGradingPage();
+        this.isMobileMenuVisible = false; // Close menu (Issue #10)
     }
 
     downloadCertificates() {
         this.showInfoToast('Info', 'Download certificates functionality would be implemented here');
+        this.isMobileMenuVisible = false; // Close menu (Issue #10)
     }
 
     emailCertificates() {
         this.showInfoToast('Info', 'Email certificates functionality would be implemented here');
+        this.isMobileMenuVisible = false; // Close menu (Issue #10)
     }
 
     requestCorrection() {
         this.showInfoToast('Info', 'Request correction functionality would be implemented here');
+        this.isMobileMenuVisible = false; // Close menu (Issue #10)
     }
 
     formatTime(minutes) {
@@ -1016,6 +1168,7 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     }
 
     calculateMinimumTime() {
+        // Fallback to client-side sum (Issue #2; ideally from DB via Apex)
         let totalMinutes = 0;
         const field = this.selectedCertificationType === 'Initial' ? 'initialMinutes' : 'recertMinutes';
         this.courseData.forEach(comp => {
@@ -1048,5 +1201,14 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             message: message,
             variant: 'info'
         }));
+    }
+
+        // Debounce utility
+    debounce(fn, wait) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => fn.apply(this, args), wait);
+        };
     }
 }
