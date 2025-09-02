@@ -106,6 +106,10 @@
                                                     type="date"
                                                     label="Start Date"
                                                     value={trainingStartDate}
+                                                    min={today}
+                                                    max={trainingEndDate}
+                                                    message-when-range-overflow="Start date cannot be in the future"
+                                                    message-when-range-underflow="Start date cannot exceed End date"
                                                     onchange={updateStartDate}
                                                     disabled={editingDisabled}
                                                     aria-label="Training Start Date"
@@ -115,6 +119,10 @@
                                                 <lightning-input
                                                     type="date"
                                                     label="End Date"
+                                                    max={today}
+                                                    min={trainingStartDate}
+                                                    message-when-range-overflow="End date cannot be in the future"
+                                                    message-when-range-underflow="End date cannot be before Start date"
                                                     value={trainingEndDate}
                                                     onchange={updateEndDate}
                                                     disabled={editingDisabled}
@@ -122,7 +130,6 @@
                                                 ></lightning-input>
                                             </lightning-layout-item>
                                         </lightning-layout>
-                                        
                                     </div>
                                 </div>
                             </lightning-layout-item>
@@ -217,7 +224,7 @@
                                 <div class="slds-theme_default">
                                     <h3 class="slds-text-heading_small slds-border_bottom slds-p-bottom_small">Courses</h3>
                                     <lightning-layout multiple-rows>
-                                        <lightning-layout-item size="12" large-device-size="5" class="slds-p-around_small">
+                                        <lightning-layout-item size="12" large-device-size="4" class="slds-p-around_small">
                                             <lightning-radio-group
                                                 name="courseSelection"
                                                 label="Select Courses"
@@ -228,34 +235,139 @@
                                                 aria-label="Select Course"
                                             ></lightning-radio-group>
                                         </lightning-layout-item>
-                                        <lightning-layout-item size="12" large-device-size="7" class="slds-p-around_small">
+                                        <lightning-layout-item size="12" large-device-size="8" class="slds-p-top_x-small slds-p-bottom_small">
                                             <template if:true={hasCourseCompetencies}>
-                                                <div style="height: 30vh;" class="slds-scrollable_y">
-                                                    <lightning-datatable
-                                                        key-field="id"
-                                                        data={courseData}
-                                                        columns={courseColumns}
-                                                        hide-checkbox-column
-                                                        oncellchange={handleCellChange}
-                                                        class="slds-table_bordered"
-                                                    ></lightning-datatable>
-                                                </div>
-                                                <div>
-                                                    <lightning-formatted-text
-                                                        label="Minimum Training Time"
-                                                        value={courseMinimumDuration}
-                                                        class="slds-m-right_small slds-box"
-                                                    ></lightning-formatted-text>
-                                                    <lightning-input
-                                                        label={actualTimeLabel}
-                                                        type="time"
-                                                        value={courseActualDuration}
-                                                        onchange={updateCourseActualDuration}
-                                                        disabled={editingDisabled}
-                                                        class="slds-box"
-                                                        aria-label={actualTimeLabel}
-                                                    ></lightning-input>
-                                                </div>
+                                                <lightning-layout multiple-rows="true">
+                                                    <lightning-layout-item size="12">
+                                                        <div class="slds-table--header-fixed_container slds-border_bottom">
+                                                            <div style="height:35vh;" class="custom-table-container slds-scrollable_y">
+                                                                <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                                                    <thead>
+                                                                        <tr class="slds-line-height_reset slds-border_bottom">
+                                                                            <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                                                <div class="slds-truncate" title="Competency">Competency</div>
+                                                                            </th>
+                                                                            <template if:true={isMobileView}>
+                                                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                                                    <div class="slds-truncate" title="Taught">Taught</div>
+                                                                                </th>
+                                                                            </template>
+                                                                            <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                                                <div class="slds-truncate" title="Chapter">Chapter</div>
+                                                                            </th>
+                                                                            <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                                                <div class="slds-truncate" title="Initial Time">Initial Time</div>
+                                                                            </th>
+                                                                            <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                                                <div class="slds-truncate" title="Recert Time">Recert Time</div>
+                                                                            </th>
+                                                                            <template if:false={isMobileView}>
+                                                                                <th class="slds-text-title_caps custom-table-header" scope="col">
+                                                                                    <div class="slds-truncate" title="Taught">Taught</div>
+                                                                                </th>
+                                                                            </template>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <template for:each={courseData} for:item="course">
+                                                                            <tr key={course.id} class="slds-hint-parent">
+                                                                                <td data-label="Competency">
+                                                                                    <div class="slds-truncate" title={course.name}>{course.name}</div>
+                                                                                </td>
+                                                                                <template if:true={isMobileView}>
+                                                                                    <td data-label="Taught">
+                                                                                        <div class="">
+                                                                                            <lightning-input type="toggle"
+                                                                                                label="Taught"
+                                                                                                checked={course.taught}
+                                                                                                data-id={course.id}
+                                                                                                onchange={handleToggleChange}
+                                                                                                message-toggle-active="" 
+                                                                                                message-toggle-inactive="" 
+                                                                                                variant="label-hidden"
+                                                                                                disabled={editingDisabled}
+                                                                                                aria-label="Toggle taught status for {course.name}">
+                                                                                            </lightning-input>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                </template>
+                                                                                <td data-label="Chapter">
+                                                                                    <div class="slds-truncate" title={course.chapter}>{course.chapter}</div>
+                                                                                </td>
+                                                                                <td data-label="Initial Time">
+                                                                                    <div class="slds-truncate" title={course.initialTime}>{course.initialTime}</div>
+                                                                                </td>
+                                                                                <td data-label="Recert Time">
+                                                                                    <div class="slds-truncate" title={course.recertTime}>{course.recertTime}</div>
+                                                                                </td>
+                                                                                <template if:false={isMobileView}>
+                                                                                    <td data-label="Taught">
+                                                                                        <div class="">
+                                                                                            <lightning-input type="toggle"
+                                                                                                label="Taught"
+                                                                                                checked={course.taught}
+                                                                                                data-id={course.id}
+                                                                                                onchange={handleToggleChange}
+                                                                                                message-toggle-active="" 
+                                                                                                message-toggle-inactive="" 
+                                                                                                variant="label-hidden"
+                                                                                                disabled={editingDisabled}
+                                                                                                aria-label="Toggle taught status for {course.name}">
+                                                                                            </lightning-input>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                </template>
+                                                                            </tr>
+                                                                        </template>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item size="12" class="slds-m-top_small">
+                                                        <lightning-layout multiple-rows="true">
+                                                            <lightning-layout-item size="12" small-device-size="12" large-device-size="12" class="slds-m-top_small">
+                                                                <lightning-input type="checkbox" 
+                                                                    onchange={handleTaughtCompetenciesChange} 
+                                                                    label="Taught all competencies" 
+                                                                    name="taughtAllCompetencies" 
+                                                                    checked={taughtAllChecked} 
+                                                                    disabled={editingDisabled} 
+                                                                    aria-label="Toggle all competencies taught">
+                                                                </lightning-input>
+                                                            </lightning-layout-item>
+                                                            <lightning-layout-item size="12" large-device-size="6" class="slds-m-top_small">
+                                                                <lightning-input type="text" label="Minimum Training Time"
+                                                                    value={courseMinimumDuration} read-only
+                                                                    class="slds-m-right_small">
+                                                                </lightning-input>
+                                                            </lightning-layout-item>
+                                                            <lightning-layout-item size="12" large-device-size="6" class="slds-m-top_small">
+                                                                <lightning-layout multiple-rows="false" vertical-align="end">
+                                                                    <lightning-layout-item size="8" large-device-size="8" small-device-size="8">
+                                                                        <lightning-combobox label="Actual Training Time Hours"
+                                                                            value={courseActualDuration} 
+                                                                            options={durationHourOptions}
+                                                                            onchange={updateCourseDuration} 
+                                                                            disabled={editingDisabled} 
+                                                                            class="slds-m-right_xx-small" 
+                                                                            aria-label="Actual Initial Training Time">
+                                                                        </lightning-combobox>
+                                                                    </lightning-layout-item>
+                                                                    <lightning-layout-item size="4" large-device-size="4" small-device-size="4">
+                                                                        <lightning-combobox label="Minutes"
+                                                                            value={courseActualDuration} 
+                                                                            options={durationMinuteOptions}
+                                                                            onchange={updateCourseDuration} 
+                                                                            disabled={editingDisabled}
+                                                                            aria-label="Actual Initial Training Time Minutes">
+                                                                        </lightning-combobox>
+                                                                    </lightning-layout-item>
+                                                                </lightning-layout>
+                                                            </lightning-layout-item>
+                                                        </lightning-layout>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
                                             </template>
                                             <template if:false={hasCourseCompetencies}>
                                                 <div class="slds-p-top_medium">
@@ -417,7 +529,7 @@
                                         <template if:true={hasSpecialistsAssigned}>
                                             <div class="specialist-table-container">
                                                 <div class="slds-scrollable_x">
-                                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
                                                         <thead>
                                                             <tr class="slds-line-height_reset">
                                                                 <th class="slds-text-title_caps table-header" scope="col">

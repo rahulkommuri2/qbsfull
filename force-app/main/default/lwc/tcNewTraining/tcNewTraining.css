@@ -1,0 +1,18 @@
+/* tr.slds-hint-parent{
+    height: 35px;
+} */
+
+.custom-table-container {
+    border: 1px solid #d8dde6;
+    border-radius: 0.25rem;
+    overflow: auto;
+}
+
+.custom-table-header {
+    background-color: ghostwhite !important;
+    font-weight: 600;
+    padding: 0.75rem 0.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
