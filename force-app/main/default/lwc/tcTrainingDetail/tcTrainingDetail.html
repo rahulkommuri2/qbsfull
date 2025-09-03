@@ -52,65 +52,63 @@
 
                                     <template if:true={isMobileMenuVisible}>
                                         <lightning-layout class="slds-m-top_small slds-box slds-p-around_small" multiple-rows horizontal-align="center">
-                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
-                                                <lightning-button
-                                                    variant="neutral"
-                                                    icon-name="utility:edit"
-                                                    label="Edit Training"
-                                                    stretch
-                                                    onclick={editTraining}
-                                                    disabled={isNotEditable}
-                                                    title="Edit training details"
-                                                    aria-label="Edit training">
-                                                </lightning-button>
-                                            </lightning-layout-item>
-                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
-                                                <lightning-button
-                                                    variant="neutral"
-                                                    icon-name="utility:refresh"
-                                                    label="Refinalize"
-                                                    stretch
-                                                    disabled={restrictRefinalize}
-                                                    onclick={refinalizeTraining}
-                                                    title="Refinalize training"
-                                                    aria-label="Refinalize training">
-                                                </lightning-button>
-                                            </lightning-layout-item>
-                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
-                                                <lightning-button
-                                                    variant="neutral"
-                                                    icon-name="utility:download"
-                                                    label="Download Certificates"
-                                                    stretch
-                                                    disabled={restrictDownload}
-                                                    onclick={downloadCertificates}
-                                                    title="Download certificates"
-                                                    aria-label="Download certificates">
-                                                </lightning-button>
-                                            </lightning-layout-item>
-                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
-                                                <lightning-button
-                                                    variant="neutral"
-                                                    icon-name="utility:email"
-                                                    label="Email Certificates"
-                                                    stretch
-                                                    disabled={restrictEmail}
-                                                    onclick={emailCertificates}
-                                                    title="Email certificates"
-                                                    aria-label="Email certificates">
-                                                </lightning-button>
-                                            </lightning-layout-item>
-                                            <lightning-layout-item size="12" class="slds-p-around_xx-small">
-                                                <lightning-button
-                                                    variant="neutral"
-                                                    icon-name="utility:replace"
-                                                    label="Request Correction"
-                                                    stretch
-                                                    onclick={requestCorrection}
-                                                    title="Request training correction"
-                                                    aria-label="Request correction">
-                                                </lightning-button>
-                                            </lightning-layout-item>
+                                            <template if:true={isviewMode}>
+                                                <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                    <lightning-button
+                                                        variant="neutral"
+                                                        icon-name="utility:edit"
+                                                        label="Edit Training"
+                                                        stretch
+                                                        onclick={editTraining}
+                                                        title="Edit training details"
+                                                        aria-label="Edit training">
+                                                    </lightning-button>
+                                                </lightning-layout-item>
+                                                <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                    <lightning-button
+                                                        variant="neutral"
+                                                        icon-name="utility:refresh"
+                                                        label="Refinalize"
+                                                        stretch
+                                                        onclick={refinalizeTraining}
+                                                        title="Refinalize training"
+                                                        aria-label="Refinalize training">
+                                                    </lightning-button>
+                                                </lightning-layout-item>
+                                                <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                    <lightning-button
+                                                        variant="neutral"
+                                                        icon-name="utility:download"
+                                                        label="Download Certificates"
+                                                        stretch
+                                                        onclick={downloadCertificates}
+                                                        title="Download certificates"
+                                                        aria-label="Download certificates">
+                                                    </lightning-button>
+                                                </lightning-layout-item>
+                                                <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                    <lightning-button
+                                                        variant="neutral"
+                                                        icon-name="utility:email"
+                                                        label="Email Certificates"
+                                                        stretch
+                                                        onclick={emailCertificates}
+                                                        title="Email certificates"
+                                                        aria-label="Email certificates">
+                                                    </lightning-button>
+                                                </lightning-layout-item>
+                                                <lightning-layout-item size="12" class="slds-p-around_xx-small">
+                                                    <lightning-button
+                                                        variant="neutral"
+                                                        icon-name="utility:replace"
+                                                        label="Request Correction"
+                                                        stretch
+                                                        onclick={requestCorrection}
+                                                        title="Request training correction"
+                                                        aria-label="Request correction">
+                                                    </lightning-button>
+                                                </lightning-layout-item>
+                                            </template>
                                         </lightning-layout>
                                     </template>
                                 </template>
@@ -226,26 +224,30 @@
                                             aria-label="Select Sub Organization">
                                         </lightning-combobox>
 
-                                        <lightning-combobox
-                                            label="Certification Type"
-                                            value={selectedCertificationType}
-                                            options={certificationTypeOptions}
-                                            onchange={updateCertificationType}
-                                            disabled={editingDisabled}
-                                            class="slds-m-bottom_small"
-                                            aria-label="Select Certification Type">
-                                        </lightning-combobox>
-
-                                        <lightning-combobox
-                                            label="Authorization"
-                                            value={selectedAuthorization}
-                                            options={authorizationOptions}
-                                            onchange={updateAuthorization}
-                                            disabled={editingDisabled}
-                                            class="slds-m-bottom_small"
-                                            aria-label="Select Authorization Type">
-                                        </lightning-combobox>
-
+                                        <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
+                                            <lightning-layout-item size="6" class="slds-p-right_small">
+                                                <lightning-combobox
+                                                    label="Certification Type"
+                                                    value={selectedCertificationType}
+                                                    options={certificationTypeOptions}
+                                                    onchange={updateCertificationType}
+                                                    disabled={editingDisabled}
+                                                    class="slds-m-bottom_small"
+                                                    aria-label="Select Certification Type">
+                                                </lightning-combobox>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="6" class="slds-p-left_small">
+                                                <lightning-combobox
+                                                    label="Authorization"
+                                                    value={selectedAuthorization}
+                                                    options={authorizationOptions}
+                                                    onchange={updateAuthorization}
+                                                    disabled={editingDisabled}
+                                                    class="slds-m-bottom_small"
+                                                    aria-label="Select Authorization Type">
+                                                </lightning-combobox>
+                                            </lightning-layout-item>
+                                        </lightning-layout>
                                         <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
                                             <lightning-layout-item size="6" class="slds-p-right_small">
                                                 <lightning-input
@@ -282,20 +284,22 @@
                                         </lightning-textarea>
 
                                         <!-- Time Dashboard -->
-                                        <div class="slds-box slds-m-top_small slds-theme_shade">
-                                            <lightning-layout multiple-rows="false">
-                                                <lightning-layout-item size="6" class="slds-p-right_small">
-                                                    <div class="slds-align_absolute-center">
-                                                        <span class="slds-text-body_regular">Actual Time: <span class="slds-text-heading_small slds-text-color_success"><strong>{formattedActualTrainingTime}</strong></span></span>
-                                                    </div>
-                                                </lightning-layout-item>
-                                                <lightning-layout-item size="6" class="slds-p-left_small">
-                                                    <div class="slds-align_absolute-center">
-                                                        <span class="slds-text-body_regular">Minimum Time: <span class="slds-text-heading_small slds-text-color_weak"><strong>{formattedMinimumTrainingTime}</strong></span></span>
-                                                    </div>
-                                                </lightning-layout-item>
-                                            </lightning-layout>
-                                        </div>
+                                        <template if:false={isMobileView}>
+                                            <div class="slds-box slds-m-top_small slds-theme_shade">
+                                                <lightning-layout multiple-rows="false">
+                                                    <lightning-layout-item size="6" class="slds-p-right_small">
+                                                        <div class="slds-align_absolute-center">
+                                                            <span class="slds-text-body_regular">Actual Time: <span class="slds-text-heading_small slds-text-color_success"><strong>{formattedActualTrainingTime}</strong></span></span>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item size="6" class="slds-p-left_small">
+                                                        <div class="slds-align_absolute-center">
+                                                            <span class="slds-text-body_regular">Minimum Time: <span class="slds-text-heading_small slds-text-color_weak"><strong>{formattedMinimumTrainingTime}</strong></span></span>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </lightning-layout-item>
@@ -355,26 +359,28 @@
                                         </lightning-combobox>
 
                                         <!-- Time Dashboard -->
-                                        <div class="slds-box slds-box_xx-small slds-m-top_medium slds-theme_default slds-border_left slds-border_right slds-border_bottom slds-border_top">
-                                            <lightning-layout multiple-rows="false" horizontal-align="spread">
-                                                <lightning-layout-item size="6" class="slds-p-around_medium slds-text-align_center slds-border_right">
-                                                    <div>
-                                                        <p class="slds-text-title_caps slds-text-color_weak">Actual Time</p>
-                                                        <p class="slds-text-heading_medium slds-text-color_success slds-m-top_x-small">
-                                                            {formattedActualTrainingTime}
-                                                        </p>
-                                                    </div>
-                                                </lightning-layout-item>
-                                                <lightning-layout-item size="6" class="slds-p-around_medium slds-text-align_center">
-                                                    <div>
-                                                        <p class="slds-text-title_caps slds-text-color_weak">Minimum Time</p>
-                                                        <p class="slds-text-heading_medium slds-text-color_error slds-m-top_x-small">
-                                                            {formattedMinimumTrainingTime}
-                                                        </p>
-                                                    </div>
-                                                </lightning-layout-item>
-                                            </lightning-layout>
-                                        </div>
+                                        <template if:true={isMobileView}>
+                                            <div class="slds-box slds-box_xx-small slds-m-top_medium slds-theme_default slds-border_left slds-border_right slds-border_bottom slds-border_top">
+                                                <lightning-layout multiple-rows="false" horizontal-align="spread">
+                                                    <lightning-layout-item size="6" class="slds-p-around_medium slds-text-align_center slds-border_right">
+                                                        <div>
+                                                            <p class="slds-text-title_caps slds-text-color_weak">Actual Time</p>
+                                                            <p class="slds-text-heading_medium slds-text-color_success slds-m-top_x-small">
+                                                                {formattedActualTrainingTime}
+                                                            </p>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item size="6" class="slds-p-around_medium slds-text-align_center">
+                                                        <div>
+                                                            <p class="slds-text-title_caps slds-text-color_weak">Minimum Time</p>
+                                                            <p class="slds-text-heading_medium slds-text-color_error slds-m-top_x-small">
+                                                                {formattedMinimumTrainingTime}
+                                                            </p>
+                                                        </div>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </lightning-layout-item>
@@ -526,7 +532,7 @@
                                                     icon-name="utility:adduser"
                                                     onclick={openSpecialistModal}
                                                     disabled={editingDisabled}
-                                                    class="slds-m-bottom_xx-small"
+                                                    class="slds-m-bottom_x-small"
                                                     title="Create new specialist"
                                                     aria-label="Add new specialist">
                                                 </lightning-button>
@@ -554,7 +560,7 @@
                                                 <lightning-layout-item size="12" medium-device-size="3" large-device-size="3" class="slds-m-top_large slds-text-align_right">
                                                     <lightning-button
                                                         label="Add New Specialist"
-                                                        variant="brand"
+                                                        variant="neutral"
                                                         icon-name="utility:adduser"
                                                         onclick={openSpecialistModal}
                                                         disabled={editingDisabled}

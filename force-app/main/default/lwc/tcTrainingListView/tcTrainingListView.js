@@ -84,38 +84,6 @@ export default class TcTrainingListView extends NavigationMixin(
     { label: "50", value: 50 },
   ];
 
-  columns = [
-    { label: "Training", fieldName: "Name", type: "text" },
-    {
-      label: "Course",
-      fieldName: "hed__Course__r",
-      type: "text",
-      typeAttributes: { linkText: { fieldName: "hed__Course__r.Name" } },
-    },
-    { label: "Start Date", fieldName: "cc_Course_Start_Date__c", type: "date" },
-    { label: "End Date", fieldName: "cc_Course_End_Date__c", type: "date" },
-    {
-      label: "Primary Trainer",
-      fieldName: "hed__Faculty__r.Name",
-      type: "text",
-    },
-    {
-      label: "Secondary Trainer",
-      fieldName: "cc_Secondary_Faculty__r.Name",
-      type: "text",
-    },
-    { label: "Finalized", fieldName: "Finalized__c", type: "boolean" },
-    {
-      type: "action",
-      typeAttributes: {
-        rowActions: [
-          { label: "View", name: "view" },
-          { label: "Edit", name: "edit" },
-        ],
-      },
-    },
-  ];
-
   // Fixed wire decorator with correct parameter names
   @wire(getTrainingsPageData, {
     offset: "$computedOffset",

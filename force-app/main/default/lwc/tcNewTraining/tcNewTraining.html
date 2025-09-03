@@ -67,17 +67,19 @@
                                             class="slds-m-bottom_small"
                                             aria-label="Organization"
                                         ></lightning-input>
-                                        <lightning-combobox
-                                            label="Sub Organization"
-                                            value={selectedSubOrganization}
-                                            options={subOrganizationOptions}
-                                            onchange={updateSubOrganization}
-                                            disabled={editingDisabled}
-                                            class="slds-m-bottom_small"
-                                            aria-label="Select Sub Organization"
-                                        ></lightning-combobox>
                                         <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
                                             <lightning-layout-item size="6" class="slds-p-right_small">
+                                                <lightning-combobox
+                                                    label="Sub Organization"
+                                                    value={selectedSubOrganization}
+                                                    options={subOrganizationOptions}
+                                                    onchange={updateSubOrganization}
+                                                    disabled={editingDisabled}
+                                                    class="slds-m-bottom_small"
+                                                    aria-label="Select Sub Organization"
+                                                ></lightning-combobox>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item size="6" class="slds-p-left_small">
                                                 <lightning-combobox
                                                     label="Certification Type"
                                                     value={selectedCertificationType}
@@ -88,17 +90,6 @@
                                                     aria-label="Select Certification Type"
                                                 ></lightning-combobox>
                                             </lightning-layout-item>
-                                            <lightning-layout-item size="6" class="slds-p-left_small">
-                                                <lightning-combobox
-                                                    label="Authorization"
-                                                    value={selectedAuthorization}
-                                                    options={authorizationOptions}
-                                                    onchange={updateAuthorization}
-                                                    disabled={editingDisabled}
-                                                    class="slds-m-bottom_small"
-                                                    aria-label="Select Authorization Type"
-                                                ></lightning-combobox>
-                                            </lightning-layout-item>
                                         </lightning-layout>
                                         <lightning-layout multiple-rows="false" class="slds-m-bottom_small">
                                             <lightning-layout-item size="6" class="slds-p-right_small">
@@ -106,7 +97,6 @@
                                                     type="date"
                                                     label="Start Date"
                                                     value={trainingStartDate}
-                                                    min={today}
                                                     max={trainingEndDate}
                                                     message-when-range-overflow="Start date cannot be in the future"
                                                     message-when-range-underflow="Start date cannot exceed End date"
@@ -130,6 +120,15 @@
                                                 ></lightning-input>
                                             </lightning-layout-item>
                                         </lightning-layout>
+                                        <lightning-combobox
+                                            label="Authorization"
+                                            value={selectedAuthorization}
+                                            options={authorizationOptions}
+                                            onchange={updateAuthorization}
+                                            disabled={editingDisabled}
+                                            class="slds-m-bottom_small"
+                                            aria-label="Select Authorization Type"
+                                        ></lightning-combobox>
                                     </div>
                                 </div>
                             </lightning-layout-item>
@@ -176,9 +175,9 @@
                                             aria-label="Zip or Postal Code"
                                         ></lightning-input>
                                         <lightning-textarea
-                                            label="Training Note"
+                                            label="Training Note (For internal use only - Not for contacting QBS)"
                                             value={trainingNotes}
-                                            placeholder="For internal use only - Not for contacting QBS"
+                                            placeholder=""
                                             onchange={updateTrainingNotes}
                                             disabled={editingDisabled}
                                             class="slds-m-bottom_small"
@@ -342,15 +341,16 @@
                                                                     class="slds-m-right_small">
                                                                 </lightning-input>
                                                             </lightning-layout-item>
-                                                            <lightning-layout-item size="12" large-device-size="6" class="slds-m-top_small">
+                                                            <!-- <lightning-layout-item size="12" large-device-size="6" class="slds-m-top_small">
                                                                 <lightning-layout multiple-rows="false" vertical-align="end">
                                                                     <lightning-layout-item size="8" large-device-size="8" small-device-size="8">
                                                                         <lightning-combobox label="Actual Training Time Hours"
                                                                             value={courseActualDuration} 
                                                                             options={durationHourOptions}
-                                                                            onchange={updateCourseDuration} 
+                                                                            onchange={updateCourseHourDuration}
                                                                             disabled={editingDisabled} 
                                                                             class="slds-m-right_xx-small" 
+                                                                            data-id="courseHourDuration"
                                                                             aria-label="Actual Initial Training Time">
                                                                         </lightning-combobox>
                                                                     </lightning-layout-item>
@@ -358,10 +358,38 @@
                                                                         <lightning-combobox label="Minutes"
                                                                             value={courseActualDuration} 
                                                                             options={durationMinuteOptions}
-                                                                            onchange={updateCourseDuration} 
+                                                                            onchange={updateCourseMinutesDuration}
                                                                             disabled={editingDisabled}
+                                                                            data-id="courseMinutesDuration"
                                                                             aria-label="Actual Initial Training Time Minutes">
                                                                         </lightning-combobox>
+                                                                    </lightning-layout-item>
+                                                                </lightning-layout>
+                                                            </lightning-layout-item> -->
+                                                            <lightning-layout-item size="12" large-device-size="6" class="slds-m-top_small">
+                                                                <lightning-layout multiple-rows="false" vertical-align="end">
+                                                                    <lightning-layout-item size="8" large-device-size="8" small-device-size="8">
+                                                                        <lightning-combobox
+                                                                            label={actualTimeLabel}
+                                                                            value={courseActualDurationHours}
+                                                                            options={durationHourOptions}
+                                                                            onchange={updateCourseHourDuration}
+                                                                            disabled={editingDisabled}
+                                                                            class="slds-m-right_xx-small"
+                                                                            data-id="courseHourDuration"
+                                                                            aria-label="Select Actual Training Time Hours"
+                                                                        ></lightning-combobox>
+                                                                    </lightning-layout-item>
+                                                                    <lightning-layout-item size="4" large-device-size="4" small-device-size="4">
+                                                                        <lightning-combobox
+                                                                            label="Minutes"
+                                                                            value={courseActualDurationMinutes}
+                                                                            options={durationMinuteOptions}
+                                                                            onchange={updateCourseMinutesDuration}
+                                                                            disabled={editingDisabled}
+                                                                            data-id="courseMinutesDuration"
+                                                                            aria-label="Select Actual Training Time Minutes"
+                                                                        ></lightning-combobox>
                                                                     </lightning-layout-item>
                                                                 </lightning-layout>
                                                             </lightning-layout-item>
@@ -408,18 +436,15 @@
                                     <div class="slds-p-top_medium">
                                         <lightning-layout multiple-rows="false" horizontal-align="spread" class="slds-m-bottom_medium">
                                             <lightning-layout-item size="12" medium-device-size="6" large-device-size="5" class="slds-p-right_small">
-                                                <lightning-combobox
-                                                    data-id="specialist"
-                                                    label="Add Specialist"
-                                                    placeholder="Search for a Specialist to add"
-                                                    value={selectedSpecialistContactId}
-                                                    options={specialistOptions}
-                                                    onchange={updateSpecialistSelection}
-                                                    disabled={specialistComboboxDisabled}
-                                                    spinner-active={isSpecialistLoading}
-                                                    aria-label="Select Specialist"
-                                                    message-when-value-missing="Please select a specialist"
-                                                ></lightning-combobox>
+                                                <!-- Search Input -->
+                                                <lightning-record-picker
+                                                    object-api-name="Contact"
+                                                    label="Search Specialist to add"
+                                                    value={selectedSpecialist}
+                                                    onchange={handleSearchSpecialistChange}
+                                                    placeholder="Type to search..."
+                                                    filter={specialistFilter}
+                                                ></lightning-record-picker>
                                             </lightning-layout-item>
                                             <template if:false={isMobileView}>
                                                 <lightning-layout-item size="12" medium-device-size="3" large-device-size="3" class="slds-m-top_large slds-text-align_right">

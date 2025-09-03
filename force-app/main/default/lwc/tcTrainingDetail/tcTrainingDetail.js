@@ -8,19 +8,33 @@ import saveTraining from '@salesforce/apex/tcTrainingController.saveTraining';
 import getStatePicklistValues from '@salesforce/apex/tcTrainingController.getPicklistValues';
 
 export default class TcTrainingDetail extends NavigationMixin(LightningElement) {
+    
     @api recordId; // For record context in Experience Cloud
     @track trainingId;
     @track contactId;
+    @track errorMessage = '';
+    
+    // State Variables
     @track isLoading = true;
     @track isSpecialistLoading = false;
-    @track errorMessage = '';
     @track hasError = false;
     @track isMobileView = false;
     @track isMobileMenuVisible = false;
     @track editingDisabled = true;
     @track isModalOpen = false;
+    @track isViewMode = true;
+    @track isEditMode = false;
+    @track hasCourseCompetencies = false;
+    @track taughtAllChecked = true;
+
+    // Data Variables
     @track trainingData = {};
     @track originalTrainingData = {};
+    @track courseData = [];
+    @track draftValues = [];
+    @track specialists = [];
+
+    // Form Fields
     @track parentOrgName = '';
     @track selectedSubOrganization = '';
     @track selectedCertificationType = '';
@@ -39,11 +53,8 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
     @track courseActualDurationHours = '0';
     @track courseActualDurationMinutes = '0';
     @track courseMinimumDuration = '';
-    @track courseData = [];
-    @track draftValues = [];
-    @track hasCourseCompetencies = false;
-    @track taughtAllChecked = true;
-    @track specialists = [];
+
+    // Local Variables
     @track selectedSpecialistContactId = '';
     @track newSpecialistOrgId = '';
     @track newSpecialistFirstName = '';
@@ -181,6 +192,13 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
         if (pageRef && pageRef.state) {
             this.trainingId = pageRef.state.trainingId || this.recordId;
             this.contactId = pageRef.state.contactId;
+            if(pageRef.state.mode === 'edit') {
+                this.isEditMode = true;
+                this.isViewMode = false;
+            } else if (pageRef.state.mode === 'view') {
+                this.isViewMode = true;
+                this.isEditMode = false;
+            }
             if (this.contactId && this.trainingId) {
                 this.loadTrainingData();
             } else {
@@ -490,8 +508,9 @@ export default class TcTrainingDetail extends NavigationMixin(LightningElement) 
             this.showToast('Error', 'Cannot edit a finalized training', 'error');
             return;
         }
+        this.isViewMode = false;
+        this.isEditMode = true;
         this.editingDisabled = false;
-        this.showToast('Success', 'Edit mode enabled', 'success');
         this.isMobileMenuVisible = false;
         this.saveFormState();
     }

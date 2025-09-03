@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+	<masterLabel>Send Cetrificate Email</masterLabel>
+	<apiVersion>63.0</apiVersion>
+	<description>This component is used for sending the email to the specialists. </description>
+	<isExposed>false</isExposed>
+</LightningComponentBundle>
